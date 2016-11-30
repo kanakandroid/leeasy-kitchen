@@ -2,6 +2,7 @@ package com.cronyapps.odoo;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
@@ -17,6 +18,7 @@ import com.cronyapps.odoo.api.wrapper.impl.IOdooConnectionListener;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooDatabases;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooErrorListener;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooLoginListener;
+import com.cronyapps.odoo.core.account.OdooAccount;
 import com.cronyapps.odoo.core.helper.CronyActivity;
 import com.cronyapps.odoo.core.utils.URLUtils;
 
@@ -28,6 +30,7 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
     private EditText edtHost, edtUsername, edtPassword;
     private OdooApiClient odooClient;
     private ProgressDialog dialog;
+    private OdooAccount odooAccount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +40,7 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
         edtUsername = (EditText) findViewById(R.id.input_email);
         edtPassword = (EditText) findViewById(R.id.input_password);
         findViewById(R.id.btn_login).setOnClickListener(this);
-
+        odooAccount = OdooAccount.getInstance(this);
         if (BuildConfig.DEBUG) {
             edtHost.setText("http://192.168.199.101:8069");
             edtUsername.setText("admin");
@@ -95,9 +98,7 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
     @Override
     public void onError(OdooError error) {
         error.printStackTrace();
-        if (dialog != null && dialog.isShowing()) {
-            dialog.dismiss();
-        }
+        hideProgressDialog();
     }
 
     @Override
@@ -126,9 +127,7 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialogInterface) {
-                if (dialog != null && dialog.isShowing()) {
-                    dialog.dismiss();
-                }
+                hideProgressDialog();
             }
         });
         builder.show();
@@ -149,26 +148,20 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
                 } else {
                     Toast.makeText(OdooLogin.this, R.string.toast_database_name_required,
                             Toast.LENGTH_SHORT).show();
-                    if (dialog != null && dialog.isShowing()) {
-                        dialog.dismiss();
-                    }
+                    hideProgressDialog();
                 }
             }
         });
         builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                if (dialog != null && dialog.isShowing()) {
-                    dialog.dismiss();
-                }
+                hideProgressDialog();
             }
         });
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialogInterface) {
-                if (dialog != null && dialog.isShowing()) {
-                    dialog.dismiss();
-                }
+                hideProgressDialog();
             }
         });
         builder.show();
@@ -177,23 +170,40 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
     private void authenticate(String database) {
         String username = edtUsername.getText().toString().trim();
         String password = edtPassword.getText().toString().trim();
-        odooClient.authenticate(username, password, database, this);
+        if (!odooAccount.hasAccount(username, database)) {
+            odooClient.authenticate(username, password, database, this);
+        } else {
+            hideProgressDialog();
+            Snackbar.make(getContentView(), getString(R.string.msg_account_already_exists),
+                    Snackbar.LENGTH_LONG).show();
+        }
     }
 
     @Override
     public void loginFail() {
-        if (dialog != null && dialog.isShowing()) {
-            dialog.dismiss();
-        }
+        hideProgressDialog();
         Snackbar.make(getContentView(), R.string.msg_authentication_fail, Snackbar.LENGTH_LONG)
                 .show();
     }
 
     @Override
     public void loginSuccess(OdooUser user) {
+        hideProgressDialog();
+        user = odooAccount.createAccount(user);
+        if (user != null) {
+            odooAccount.makeActive(user);
+            startHomeActivity();
+        }
+    }
+
+    private void hideProgressDialog() {
         if (dialog != null && dialog.isShowing()) {
             dialog.dismiss();
         }
-        //TODO: Login success, creating account
+    }
+
+    private void startHomeActivity() {
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
     }
 }

@@ -1,15 +1,60 @@
 package com.cronyapps.odoo.api.wrapper.helper;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import java.util.Locale;
 
 public class OdooUser implements Parcelable {
     public String name, username, language, time_zone, database, host, session_id;
     public String avatar, db_uuid, db_created_on;
     public Integer company_id, partner_id, uid;
+    public Account account;
+    public Boolean active = false;
 
     public OdooUser() {
         // pass
+    }
+
+    public Bundle toBundle() {
+        Bundle data = new Bundle();
+        data.putString("name", name);
+        data.putString("username", username);
+        data.putString("language", language);
+        data.putString("time_zone", time_zone);
+        data.putString("database", database);
+        data.putString("host", host);
+        data.putString("session_id", session_id);
+        data.putString("avatar", avatar);
+        data.putString("db_uuid", db_uuid);
+        data.putString("db_created_on", db_created_on);
+        data.putString("company_id", company_id + "");
+        data.putString("partner_id", partner_id + "");
+        data.putString("uid", uid + "");
+        data.putString("active", active ? "true" : "false");
+        return data;
+    }
+
+    public OdooUser fromBundle(AccountManager manager, Account deviceAccount) {
+        account = deviceAccount;
+        name = manager.getUserData(account, "name");
+        username = manager.getUserData(account, "username");
+        language = manager.getUserData(account, "language");
+        time_zone = manager.getUserData(account, "time_zone");
+        database = manager.getUserData(account, "database");
+        host = manager.getUserData(account, "host");
+        session_id = manager.getUserData(account, "session_id");
+        avatar = manager.getUserData(account, "avatar");
+        db_uuid = manager.getUserData(account, "db_uuid");
+        db_created_on = manager.getUserData(account, "db_created_on");
+        company_id = Integer.parseInt(manager.getUserData(account, "company_id"));
+        partner_id = Integer.parseInt(manager.getUserData(account, "partner_id"));
+        uid = Integer.parseInt(manager.getUserData(account, "uid"));
+        active = manager.getUserData(account, "active").equals("true");
+        return this;
     }
 
     protected OdooUser(Parcel in) {
@@ -26,6 +71,14 @@ public class OdooUser implements Parcelable {
         partner_id = in.readInt();
         uid = in.readInt();
         avatar = in.readString();
+    }
+
+    public String getDatabaseName() {
+        return String.format(Locale.getDefault(), "OdooSQLite_%s_%s", username, database);
+    }
+
+    public String getAccountName() {
+        return String.format(Locale.getDefault(), "%s[%s]", username, database);
     }
 
     public static final Creator<OdooUser> CREATOR = new Creator<OdooUser>() {

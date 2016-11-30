@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Crony</string>
+    <string name="base_auth_type">com.cronyapps.odoo.mobile.auth</string>
 
     <!--API Errors-->
     <string name="error_host_required">Server URL required</string>
@@ -19,4 +20,6 @@
     <string name="hint_database_name">Database name</string>
     <string name="toast_database_name_required">Database name required</string>
     <string name="hint_input_value">Value</string>
+    <string name="account_label">Crony App</string>
+    <string name="msg_account_already_exists">Account already exists !</string>
 </resources>
