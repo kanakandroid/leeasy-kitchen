@@ -2,8 +2,21 @@
     <string name="app_name">Crony</string>
 
     <!--API Errors-->
-    <string name="error_host_required">Host URL required</string>
+    <string name="error_host_required">Server URL required</string>
     <string name="error_server_error">Server error</string>
     <string name="error_version_not_supported">Odoo version not supported.</string>
     <string name="error_time_out">Timeout</string>
+    <string name="hint_host_url">Server URL</string>
+    <string name="hint_login_email">Username/Email</string>
+    <string name="hint_password">Password</string>
+    <string name="label_login">Login</string>
+    <string name="error_username_required">Username required</string>
+    <string name="error_password_required">Password required</string>
+    <string name="msg_authenticating">Authenticating…</string>
+    <string name="msg_authentication_fail">Authentication failed. Try again !</string>
+    <string name="title_select_database">Select database</string>
+    <string name="msg_enter_database_name">Input database name</string>
+    <string name="hint_database_name">Database name</string>
+    <string name="toast_database_name_required">Database name required</string>
+    <string name="hint_input_value">Value</string>
 </resources>

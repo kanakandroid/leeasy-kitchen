@@ -194,6 +194,12 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
                     }
                     callback.onDatabasesLoad(databases);
                 }
+
+                @Override
+                public boolean onError(OdooResult error) {
+                    callback.onDatabasesLoad(new ArrayList<String>());
+                    return false;
+                }
             });
         }
     }
