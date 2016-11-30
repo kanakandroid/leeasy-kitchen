@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.cronyapps.odoo.api.wrapper.OdooWrapper;
+import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooConnectionListener;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooErrorListener;
 
@@ -25,9 +26,15 @@ public abstract class OdooApiClient extends OdooWrapper<OdooApiClient> {
         private IOdooConnectionListener mOdooConnectionListener;
         private IOdooErrorListener mOdooErrorListener;
         private Boolean synchronizedRequest = false;
+        private OdooUser user;
 
         public Builder(Context context) {
             mContext = context;
+        }
+
+        public Builder setUser(OdooUser user) {
+            this.user = user;
+            return this;
         }
 
         public Builder setHost(String host) {
@@ -54,7 +61,7 @@ public abstract class OdooApiClient extends OdooWrapper<OdooApiClient> {
             OdooApiClient client = new OdooApiClient() {
                 @Override
                 public String getHost() {
-                    return hostURL;
+                    return user != null ? user.host : hostURL;
                 }
 
                 @Override
@@ -62,6 +69,7 @@ public abstract class OdooApiClient extends OdooWrapper<OdooApiClient> {
                     return mContext;
                 }
             };
+            client.setUser(user);
             client.setSynchronizedRequest(synchronizedRequest);
             client.setErrorListener(mOdooErrorListener);
             client.setOdooConnectionListener(mOdooConnectionListener);

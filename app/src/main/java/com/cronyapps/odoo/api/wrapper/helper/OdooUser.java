@@ -2,9 +2,12 @@ package com.cronyapps.odoo.api.wrapper.helper;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import com.cronyapps.odoo.core.account.OdooAccount;
 
 import java.util.Locale;
 
@@ -131,5 +134,9 @@ public class OdooUser implements Parcelable {
         dest.writeInt(partner_id);
         dest.writeInt(uid);
         dest.writeString(avatar);
+    }
+
+    public static OdooUser get(Context context) {
+        return OdooAccount.getInstance(context).getActiveAccount();
     }
 }

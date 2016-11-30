@@ -2,6 +2,7 @@ package com.cronyapps.odoo.api.wrapper;
 
 import android.content.Context;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -38,7 +39,10 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -69,6 +73,7 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
     // Odoo response data
     private OdooVersion odooVersion = new OdooVersion();
     private OdooSession odooSession = new OdooSession();
+    private OdooUser user;
 
     public abstract String getHost();
 
@@ -380,13 +385,23 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
         final JSONObject payload = createPayload(params, response);
         final RequestQueue requestQueue = RequestQueueSingleton.getRequestQueue(getContext());
         if (!synchronized_request) {
-            JsonObjectRequest request = new JsonObjectRequest(url, payload, this, this);
+            JsonObjectRequest request = new JsonObjectRequest(url, payload, this, this) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    return getRequestHeader(super.getHeaders());
+                }
+            };
             request.setRetryPolicy(new DefaultRetryPolicy(new_request_timeout, new_request_max_retry
                     , DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
             requestQueue.add(request);
         } else {
             RequestFuture<JSONObject> requestFuture = RequestFuture.newFuture();
-            JsonObjectRequest request = new JsonObjectRequest(url, payload, requestFuture, requestFuture);
+            JsonObjectRequest request = new JsonObjectRequest(url, payload, requestFuture, requestFuture) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    return getRequestHeader(super.getHeaders());
+                }
+            };
             request.setRetryPolicy(new DefaultRetryPolicy(new_request_timeout, new_request_max_retry
                     , DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
             requestQueue.add(request);
@@ -407,6 +422,16 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
         // resetting timeout and max retry
         new_request_timeout = OdooApiClient.REQUEST_TIMEOUT_MS;
         new_request_max_retry = OdooApiClient.DEFAULT_MAX_RETRIES;
+    }
+
+    private Map<String, String> getRequestHeader(Map<String, String> header) {
+        if (header == null || header.equals(Collections.emptyMap())) {
+            header = new HashMap<>();
+        }
+        if (user != null && user.session_id != null) {
+            header.put("Cookie", "session_id=" + user.session_id);
+        }
+        return header;
     }
 
     /**
@@ -451,18 +476,20 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
                 callback.onResult(response.result);
                 responseQueue.remove(response.id);
             }
-        } else if (mOdooErrorListener != null) {
+        } else {
             if (callback != null && !callback.onError(response.error)) {
                 // ignoring if callback onError return false
                 return;
             }
-            OdooResult errorResult = response.error;
-            OdooError error = new OdooError(errorResult.getString("message"), OdooError.Type.SERVER_ERROR,
-                    null);
-            OdooResult data = errorResult.getMap("data");
-            error.setStackTrace(new StackTraceElement[]{new StackTraceElement(data.getString("name"),
-                    data.getString("message"), data.getString("debug"), 0)});
-            mOdooErrorListener.onError(error);
+            if (mOdooErrorListener != null) {
+                OdooResult errorResult = response.error;
+                OdooError error = new OdooError(errorResult.getString("message"), OdooError.Type.SERVER_ERROR,
+                        null);
+                OdooResult data = errorResult.getMap("data");
+                error.setStackTrace(new StackTraceElement[]{new StackTraceElement(data.getString("name"),
+                        data.getString("message"), data.getString("debug"), 0)});
+                mOdooErrorListener.onError(error);
+            }
         }
     }
 
@@ -514,5 +541,9 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
         Pattern pattern = Pattern.compile(".runbot.?\\.odoo\\.com?(.+?)", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(host);
         return matcher.find();
+    }
+
+    public void setUser(OdooUser user) {
+        this.user = user;
     }
 }
