@@ -1,4 +1,4 @@
-package com.cronyapps.odoo.core.account;
+package com.cronyapps.odoo.core.auth;
 
 import android.app.Service;
 import android.content.Intent;

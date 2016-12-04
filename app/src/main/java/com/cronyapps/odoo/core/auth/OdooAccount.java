@@ -1,4 +1,4 @@
-package com.cronyapps.odoo.core.account;
+package com.cronyapps.odoo.core.auth;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;

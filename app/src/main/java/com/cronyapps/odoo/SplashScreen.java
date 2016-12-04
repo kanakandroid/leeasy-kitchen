@@ -6,7 +6,7 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
-import com.cronyapps.odoo.core.account.OdooAccount;
+import com.cronyapps.odoo.core.auth.OdooAccount;
 import com.cronyapps.odoo.core.helper.CronyActivity;
 
 public class SplashScreen extends CronyActivity {

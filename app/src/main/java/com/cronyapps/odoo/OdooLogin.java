@@ -18,7 +18,7 @@ import com.cronyapps.odoo.api.wrapper.impl.IOdooConnectionListener;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooDatabases;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooErrorListener;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooLoginListener;
-import com.cronyapps.odoo.core.account.OdooAccount;
+import com.cronyapps.odoo.core.auth.OdooAccount;
 import com.cronyapps.odoo.core.helper.CronyActivity;
 import com.cronyapps.odoo.core.utils.URLUtils;
 
@@ -42,7 +42,7 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
         findViewById(R.id.btn_login).setOnClickListener(this);
         odooAccount = OdooAccount.getInstance(this);
         if (BuildConfig.DEBUG) {
-            edtHost.setText("http://192.168.199.101:8069");
+            edtHost.setText("http://192.168.1.5:8069");
             edtUsername.setText("admin");
             edtPassword.setText("admin");
         }

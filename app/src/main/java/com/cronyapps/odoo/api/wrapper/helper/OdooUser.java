@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.cronyapps.odoo.core.account.OdooAccount;
+import com.cronyapps.odoo.core.auth.OdooAccount;
 
 import java.util.Locale;
 
