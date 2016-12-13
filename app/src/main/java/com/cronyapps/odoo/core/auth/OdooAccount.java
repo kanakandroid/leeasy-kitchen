@@ -57,6 +57,14 @@ public class OdooAccount {
         return null;
     }
 
+    public OdooUser getAccount(String userName) {
+        Account account = findAccount(userName);
+        if (account != null) {
+            return new OdooUser().fromBundle(accountManager, account);
+        }
+        return null;
+    }
+
     public boolean hasAnyAccount() {
         return getAccounts().length > 0;
     }
@@ -124,4 +132,5 @@ public class OdooAccount {
         accountManager.setUserData(user.account, "active", "true");
         return true;
     }
+
 }

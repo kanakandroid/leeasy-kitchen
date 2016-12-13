@@ -22,4 +22,5 @@
     <string name="hint_input_value">Value</string>
     <string name="account_label">Crony App</string>
     <string name="msg_account_already_exists">Account already exists !</string>
+    <string name="error_unable_to_reach_server">Unable to reach server</string>
 </resources>

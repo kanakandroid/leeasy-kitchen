@@ -2,6 +2,7 @@ package com.cronyapps.odoo.base.addons.res.models;
 
 import android.content.Context;
 
+import com.cronyapps.odoo.api.wrapper.helper.ODomain;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
 import com.cronyapps.odoo.core.orm.annotation.DataModel;
@@ -10,7 +11,7 @@ import com.cronyapps.odoo.core.orm.annotation.ModelSetup;
 import com.cronyapps.odoo.core.orm.type.FieldChar;
 import com.cronyapps.odoo.core.orm.type.FieldManyToMany;
 
-@DataModelSetup(ModelSetup.BASE)
+@DataModelSetup(ModelSetup.DEFAULT)
 @DataModel("res.users")
 public class ResUsers extends BaseDataModel<ResUsers> {
 
@@ -25,7 +26,14 @@ public class ResUsers extends BaseDataModel<ResUsers> {
         super(context, user);
     }
 
-//    public boolean hasGroup(int user_server_id, String group_xml_id) {
+    @Override
+    public ODomain syncDomain() {
+        ODomain domain = new ODomain();
+        domain.add("id", "=", getOdooUser().uid);
+        return domain;
+    }
+
+    //    public boolean hasGroup(int user_server_id, String group_xml_id) {
 //        String sql = "SELECT count(*) as total FROM res_groups_users_rel WHERE uid = ? AND gid IN ";
 //        sql += "(SELECT _id FROM res_groups where id IN (SELECT res_id FROM ir_model_data WHERE module = ? AND name = ?))";
 //        String[] xml_ids = group_xml_id.split("\\.");

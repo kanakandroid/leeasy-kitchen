@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
+import com.cronyapps.odoo.base.SetupActivity;
 import com.cronyapps.odoo.core.auth.OdooAccount;
 import com.cronyapps.odoo.core.helper.CronyActivity;
 
@@ -16,7 +17,6 @@ public class SplashScreen extends CronyActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        //TODO:
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -30,7 +30,10 @@ public class SplashScreen extends CronyActivity {
         if (account.hasAnyAccount()) {
             OdooUser activeAccount = account.getActiveAccount();
             if (activeAccount != null) {
-                startHomeActivity();
+                if (SetupActivity.isSetupPending(this)) {
+                    startActivity(new Intent(this, SetupActivity.class));
+                    finish();
+                } else startHomeActivity();
             } else {
                 // show accounts activity
             }

@@ -5,6 +5,7 @@ import android.content.Context;
 import com.cronyapps.odoo.BuildConfig;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
 import com.cronyapps.odoo.core.orm.annotation.DataModel;
+import com.cronyapps.odoo.core.orm.annotation.DataModelSetup;
 
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import dalvik.system.DexFile;
 public class ModelRegistryUtils {
 
     private HashMap<String, Class<? extends BaseDataModel>> models = new HashMap<>();
+    private HashMap<String, Class<? extends BaseDataModel>> setupModels = new HashMap<>();
 
     public void makeReady(Context context) {
         try {
@@ -33,12 +35,21 @@ public class ModelRegistryUtils {
                     }
                     if (modelName != null) {
                         this.models.put(modelName, cls);
+                        DataModelSetup setup = cls.getAnnotation(DataModelSetup.class);
+                        if (setup != null) {
+                            setupModels.put(modelName, cls);
+                        }
                     }
+
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public HashMap<String, Class<? extends BaseDataModel>> getSetupModels() {
+        return setupModels;
     }
 
     public Class<? extends BaseDataModel> getModel(String modelName) {

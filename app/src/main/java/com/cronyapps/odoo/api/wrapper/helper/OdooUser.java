@@ -77,7 +77,7 @@ public class OdooUser implements Parcelable {
     }
 
     public String getDatabaseName() {
-        return String.format(Locale.getDefault(), "OdooSQLite_%s_%s", username, database);
+        return String.format(Locale.getDefault(), "CronyAppSQLite_%s_%s.db", username, database);
     }
 
     public String getAccountName() {

@@ -5,6 +5,10 @@
     <!--Internet-->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!--File storage-->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <!-- Account permissions -->
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
@@ -39,6 +43,18 @@
                 android:resource="@xml/authenticator" />
         </service>
 
+        <!-- Base Provider -->
+        <provider
+            android:name=".core.orm.provider.BaseModelProvider"
+            android:authorities="${applicationId}.core.provider"
+            android:exported="false"
+            android:multiprocess="true" />
+
+        <!--Setup activity and service-->
+        <activity android:name=".base.SetupActivity" />
+        <service
+            android:name=".base.service.SetupIntentService"
+            android:exported="false" />
         <activity android:name=".MainActivity" />
     </application>
 

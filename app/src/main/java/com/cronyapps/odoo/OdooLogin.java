@@ -18,6 +18,7 @@ import com.cronyapps.odoo.api.wrapper.impl.IOdooConnectionListener;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooDatabases;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooErrorListener;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooLoginListener;
+import com.cronyapps.odoo.base.SetupActivity;
 import com.cronyapps.odoo.core.auth.OdooAccount;
 import com.cronyapps.odoo.core.helper.CronyActivity;
 import com.cronyapps.odoo.core.utils.URLUtils;
@@ -97,8 +98,15 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
 
     @Override
     public void onError(OdooError error) {
-        error.printStackTrace();
         hideProgressDialog();
+        switch (error.getErrorType()) {
+            case CONNECT_FAIL:
+                Snackbar.make(getContentView(), R.string.error_unable_to_reach_server,
+                        Snackbar.LENGTH_LONG).show();
+                break;
+            default:
+                error.printStackTrace();
+        }
     }
 
     @Override
@@ -192,7 +200,7 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
         user = odooAccount.createAccount(user);
         if (user != null) {
             odooAccount.makeActive(user);
-            startHomeActivity();
+            startSetupActivity();
         }
     }
 
@@ -202,8 +210,8 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
         }
     }
 
-    private void startHomeActivity() {
-        startActivity(new Intent(this, MainActivity.class));
+    private void startSetupActivity() {
+        startActivity(new Intent(this, SetupActivity.class));
         finish();
     }
 }

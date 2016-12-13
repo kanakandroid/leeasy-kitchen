@@ -52,7 +52,7 @@ public abstract class OdooApiClient extends OdooWrapper<OdooApiClient> {
             return this;
         }
 
-        public Builder synchrozedRequests() {
+        public Builder synchronizedRequests() {
             synchronizedRequest = true;
             return this;
         }

@@ -2,14 +2,18 @@ package com.cronyapps.odoo.base.addons.ir.models;
 
 import android.content.Context;
 
+import com.cronyapps.odoo.api.wrapper.helper.ODomain;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.base.addons.res.models.ResGroups;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
 import com.cronyapps.odoo.core.orm.annotation.DataModel;
+import com.cronyapps.odoo.core.orm.annotation.DataModelSetup;
+import com.cronyapps.odoo.core.orm.annotation.ModelSetup;
 import com.cronyapps.odoo.core.orm.type.FieldBoolean;
 import com.cronyapps.odoo.core.orm.type.FieldChar;
 import com.cronyapps.odoo.core.orm.type.FieldManyToOne;
 
+@DataModelSetup(ModelSetup.CONFIGURATION)
 @DataModel("ir.model.access")
 public class IrModelAccess extends BaseDataModel<IrModelAccess> {
 
@@ -26,11 +30,11 @@ public class IrModelAccess extends BaseDataModel<IrModelAccess> {
         super(context, user);
     }
 
-//    @Override
-//    public ODomain defaultDomain() {
-//        ODomain domain = super.defaultDomain();
-//        domain.add("model_id", "in", new IrModel(getContext(), getUser()).getServerIds());
-//        domain.add("group_id", "in", new ResGroups(getContext(), getUser()).getServerIds());
-//        return domain;
-//    }
+    @Override
+    public ODomain syncDomain() {
+        ODomain domain = new ODomain();
+        domain.add("model_id", "in", new IrModel(getContext(), getOdooUser()).getServerIds());
+        domain.add("group_id", "in", new ResGroups(getContext(), getOdooUser()).getServerIds());
+        return domain;
+    }
 }

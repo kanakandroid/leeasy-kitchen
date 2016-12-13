@@ -7,9 +7,9 @@ import com.cronyapps.odoo.core.orm.BaseDataModel;
 import com.cronyapps.odoo.core.orm.annotation.DataModel;
 import com.cronyapps.odoo.core.orm.annotation.DataModelSetup;
 import com.cronyapps.odoo.core.orm.annotation.ModelSetup;
+import com.cronyapps.odoo.core.orm.type.FieldChar;
 import com.cronyapps.odoo.core.orm.type.FieldFloat;
 import com.cronyapps.odoo.core.orm.type.FieldSelection;
-import com.cronyapps.odoo.core.orm.type.FieldChar;
 
 @DataModelSetup(ModelSetup.BASE)
 @DataModel("res.currency")

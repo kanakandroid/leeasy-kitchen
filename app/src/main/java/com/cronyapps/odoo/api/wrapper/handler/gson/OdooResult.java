@@ -69,7 +69,7 @@ public class OdooResult extends TreeMap<String, Object> {
     public <T> List<T> getArray(String key) {
         if (has(key) && get(key) != null) {
             List<?> rows = (List<?>) get(key);
-            if (rows.get(0) instanceof LinkedTreeMap) {
+            if (!rows.isEmpty() && rows.get(0) instanceof LinkedTreeMap) {
                 List<LinkedTreeMap> items = (List<LinkedTreeMap>) rows;
                 List<OdooRecord> records = new ArrayList<>();
                 for (LinkedTreeMap item : items) {

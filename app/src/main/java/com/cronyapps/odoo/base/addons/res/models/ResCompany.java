@@ -2,6 +2,7 @@ package com.cronyapps.odoo.base.addons.res.models;
 
 import android.content.Context;
 
+import com.cronyapps.odoo.api.wrapper.helper.ODomain;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
 import com.cronyapps.odoo.core.orm.annotation.DataModel;
@@ -22,4 +23,11 @@ public class ResCompany extends BaseDataModel<ResCompany> {
         super(context, user);
     }
 
+
+    @Override
+    public ODomain syncDomain() {
+        ODomain domain = new ODomain();
+        domain.add("id", "=", getOdooUser().company_id);
+        return domain;
+    }
 }
