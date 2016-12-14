@@ -12,4 +12,5 @@
     <color name="colorDivider">#BDBDBD</color>
 
     <color name="textHintColorInverse">#88ffffff</color>
+    <color name="pure_white">#ffffff</color>
 </resources>

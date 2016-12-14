@@ -15,5 +15,6 @@ public class MainActivity extends CronyActivity {
         super.onCreate(savedInstanceState);
         ResCompany company = BaseDataModel.getModel(this, "res.company");
         Log.e(">>", company.getColumns() + " <<");
+
     }
 }

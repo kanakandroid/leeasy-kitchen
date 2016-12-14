@@ -1,13 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
-    android:orientation="vertical">
+    android:background="@drawable/gradient_dark_to_primary"
+    android:fillViewport="true">
 
-    <Button
-        android:text="Donwlod db"
-        android:layout_width="wrap_content"
-        android:onClick="downloadDB"
-        android:layout_height="wrap_content" />
-</LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/welcomeUser"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/dim_24"
+            android:fontFamily="@string/font_light"
+            android:gravity="center"
+            android:textColor="@color/pure_white"
+            android:textSize="35sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/dim_24"
+            android:fontFamily="@string/font_light"
+            android:gravity="center"
+            android:text="@string/msg_one_time_setup"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#aaffffff" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dim_24"
+            android:animateLayoutChanges="true"
+            android:gravity="center">
+
+            <ImageView
+                android:id="@+id/setupDone"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/check_line_circle"
+                android:tint="#CCDB38"
+                android:visibility="invisible" />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/dim_48"
+            android:layout_marginTop="@dimen/dim_24"
+            android:animateLayoutChanges="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/setupStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textAllCaps="true"
+                android:textColor="#88ffffff"
+                android:textSize="30sp" />
+
+            <Button
+                android:id="@+id/btnLetsExplore"
+                style="@style/Base.Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dim_24"
+                android:paddingBottom="@dimen/dim_16"
+                android:paddingLeft="@dimen/dim_24"
+                android:paddingRight="@dimen/dim_24"
+                android:paddingTop="@dimen/dim_16"
+                android:text="@string/label_lets_explore"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="#000000"
+                android:visibility="invisible" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

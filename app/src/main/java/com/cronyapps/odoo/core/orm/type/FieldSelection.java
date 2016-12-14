@@ -18,4 +18,8 @@ public class FieldSelection extends FieldType<FieldSelection, String> {
         selectionMap.put(key, value);
         return this;
     }
+
+    public String getDisplayValue() {
+        return selectionMap.get(getValue());
+    }
 }

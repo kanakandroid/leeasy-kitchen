@@ -16,10 +16,9 @@ public class FieldDateTime extends FieldType<FieldDateTime, String> {
         return "DATETIME";
     }
 
-
     public Date getDateWithTimezone() {
         Object value = super.getValue();
-        if (!value.toString().equals("false"))
+        if (value != null && !value.toString().equals("false"))
             return ODateUtils.createDateObject(value.toString(), ODateUtils.DEFAULT_FORMAT, false);
         return null;
     }

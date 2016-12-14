@@ -3,7 +3,8 @@ package com.cronyapps.odoo.base.service;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.SyncResult;
-import android.util.Log;
+import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.cronyapps.odoo.BaseApp;
 import com.cronyapps.odoo.api.OdooApiClient;
@@ -22,6 +23,13 @@ import java.util.List;
 
 public class SetupIntentService extends IntentService {
 
+    public static final String ACTION_SETUP = "setup_intent_action";
+    public static final String KEY_RESULT_RESPONSE = "setup_start";
+    public static final String KEY_MODEL = "model_name";
+    public static final String KEY_SETUP_IN_PROGRESS = "setup_in_progress";
+    public static final String KEY_SETUP_DONE = "setup_done";
+    public static final String KEY_TOTAL_MODELS = "total_models";
+    public static final String KEY_FINISHED_MODELS = "finished_models";
     private OdooApiClient client;
     private BaseApp baseApp;
     private ModelRegistryUtils registryUtils;
@@ -55,9 +63,21 @@ public class SetupIntentService extends IntentService {
         // default models
         syncModel(getModels(ModelSetup.DEFAULT));
 
-        Log.v(">>", "SETUP FINISED ");
+
+        // setup done
+        sendBroadcast(KEY_SETUP_DONE, null);
     }
 
+    private void sendBroadcast(String key, Bundle args) {
+        Intent data = new Intent(ACTION_SETUP);
+        if (args == null) args = new Bundle();
+        args.putString(KEY_RESULT_RESPONSE, key);
+        args.putInt(KEY_TOTAL_MODELS, registryUtils.getSetupModels().size() + 1);
+        args.putInt(KEY_FINISHED_MODELS, finishedModels.size());
+        data.putExtras(args);
+        LocalBroadcastManager.getInstance(getApplicationContext())
+                .sendBroadcast(data);
+    }
 
     private void syncModel(List<Class<? extends BaseDataModel>> models) {
         for (Class<? extends BaseDataModel> model : models) {
@@ -66,6 +86,9 @@ public class SetupIntentService extends IntentService {
             SyncResult result = new SyncResult();
             obj.getSyncAdapter().onPerformSync(user.account, null, null, null, result);
             finishedModels.add(setup.value());
+            Bundle data = new Bundle();
+            data.putString(KEY_MODEL, setup.value());
+            sendBroadcast(KEY_SETUP_IN_PROGRESS, data);
         }
     }
 

@@ -29,6 +29,11 @@ public class OdooRecordUtils {
 
     public RecordValue toRecordValue(OdooRecord record) {
         RecordValue value = new RecordValue();
+        // TODO: create list of server ids for later use.
+        // 1. for deleting local records
+        // 2. updating record based on write date from server
+        // 3. re-create record if local deleted based on write date of server
+
         for (String key : record.keySet()) {
             Object parseValue = parseValue(columns.get(key), record.get(key));
             if (parseValue != null) {

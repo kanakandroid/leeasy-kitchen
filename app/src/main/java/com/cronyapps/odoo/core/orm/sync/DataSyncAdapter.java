@@ -117,8 +117,17 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
 
         // Processing records
         for (RecordValue value : values) {
+            //FIXME: Check for local write date
             model.createOrUpdate(value, value.getInt("id"));
         }
+
+        //TODO:
+        /*
+            1. Create new record on server
+            2. Check for deleted record from server
+            3. Check for local deleted records also check for write date of local deleted record
+                if local deleted record is older than server write_date, just re-create it.
+         */
 
         // request other data if length is greater than limit by setting offset.
         if (length != 0 && length != values.size() && length > limit) {
