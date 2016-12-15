@@ -315,7 +315,7 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
     }
 
     public void read(String model, Integer[] ids, OdooFields fields, IOdooResponse callback) {
-        String url = getHost() + "/web/dataset/call_kw/" + model + "/readRelationData";
+        String url = getHost() + "/web/dataset/call_kw/" + model + "/read";
         fields = fields == null ? new OdooFields() : fields;
 
         OArguments arguments = new OArguments();
@@ -324,7 +324,7 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
 
         OdooParams params = new OdooParams();
         params.add("model", model);
-        params.add("method", "readRelationData");
+        params.add("method", "read");
         params.add("args", arguments.getArray());
         params.add("kwargs", new OdooParams().add("context", getUserContext()));
 

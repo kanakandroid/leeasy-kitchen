@@ -43,9 +43,9 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
         findViewById(R.id.btn_login).setOnClickListener(this);
         odooAccount = OdooAccount.getInstance(this);
         if (BuildConfig.DEBUG) {
-            edtHost.setText("http://192.168.199.101:8069");
-            edtUsername.setText("test");
-            edtPassword.setText("test");
+            edtHost.setText("http://185931-10-0-d58431.runbot8.odoo.com");
+            edtUsername.setText("demo");
+            edtPassword.setText("demo");
         }
     }
 
@@ -102,6 +102,10 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
         switch (error.getErrorType()) {
             case CONNECT_FAIL:
                 Snackbar.make(getContentView(), R.string.error_unable_to_reach_server,
+                        Snackbar.LENGTH_LONG).show();
+                break;
+            case VERSION_ERROR:
+                Snackbar.make(getContentView(), R.string.error_version_not_supported,
                         Snackbar.LENGTH_LONG).show();
                 break;
             default:
