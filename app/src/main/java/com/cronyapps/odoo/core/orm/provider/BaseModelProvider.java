@@ -18,8 +18,10 @@ import com.cronyapps.odoo.core.orm.RecordValue;
 import com.cronyapps.odoo.core.orm.RelValues;
 import com.cronyapps.odoo.core.orm.type.FieldManyToMany;
 import com.cronyapps.odoo.core.orm.type.FieldManyToOne;
+import com.cronyapps.odoo.core.orm.type.FieldOneToMany;
 import com.cronyapps.odoo.core.orm.utils.FieldType;
 import com.cronyapps.odoo.core.orm.utils.OObjectUtils;
+import com.cronyapps.odoo.core.utils.ODateUtils;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -130,7 +132,7 @@ public class BaseModelProvider extends ContentProvider {
                             try {
                                 RecordValue m2oValue = (RecordValue)
                                         OObjectUtils.byteToObject((byte[]) values.get(key));
-
+                                if (!m2oValue.contains("id")) m2oValue.put("id", 0);
                                 m2oModel.createOrUpdate(m2oValue, m2oValue.getInt("id"));
                                 to_insert.put(key, m2oModel.selectRowId(m2oValue.getInt("id")));
                             } catch (Exception e) {
@@ -143,6 +145,8 @@ public class BaseModelProvider extends ContentProvider {
                 }
             }
         }
+        if (!to_insert.contains("_write_date"))
+            to_insert.put("_write_date", ODateUtils.getUTCDate());
         return new ContentValues[]{to_insert.toContentValues(), rel_insert.toContentValues()};
     }
 
@@ -196,7 +200,8 @@ public class BaseModelProvider extends ContentProvider {
             FieldType column = model.getColumn(key);
 
             // Many To Many
-            if (column instanceof FieldManyToMany) {
+            if (column instanceof FieldManyToMany ||
+                    column instanceof FieldOneToMany) {
                 Object data = values.get(key);
                 if (data instanceof byte[]) {
                     try {

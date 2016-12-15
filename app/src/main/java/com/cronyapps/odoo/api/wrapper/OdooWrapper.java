@@ -1,6 +1,7 @@
 package com.cronyapps.odoo.api.wrapper;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -23,6 +24,7 @@ import com.cronyapps.odoo.api.wrapper.helper.OdooFields;
 import com.cronyapps.odoo.api.wrapper.helper.OdooParams;
 import com.cronyapps.odoo.api.wrapper.helper.OdooSession;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
+import com.cronyapps.odoo.api.wrapper.helper.OdooValues;
 import com.cronyapps.odoo.api.wrapper.helper.OdooVersion;
 import com.cronyapps.odoo.api.wrapper.helper.RequestType;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooConnectionListener;
@@ -30,6 +32,7 @@ import com.cronyapps.odoo.api.wrapper.impl.IOdooDatabases;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooErrorListener;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooLoginListener;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooResponse;
+import com.cronyapps.odoo.api.wrapper.utils.JSONUtils;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -119,7 +122,7 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
                 @Override
                 public void onResult(OdooResult result) {
                     odooVersion = OdooVersion.parse(result);
-                    if (odooVersion.version_number < 7 && mOdooErrorListener != null) {
+                    if (odooVersion.version_number < 8 && mOdooErrorListener != null) {
                         // Version not supported
                         mOdooErrorListener.onError(new OdooError(
                                 getContext().getString(R.string.error_version_not_supported),
@@ -342,6 +345,36 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
             params.add("offset", offset);
             params.add("limit", limit);
             params.add("sort", sort == null ? "" : sort);
+            newJSONRequest(url, params, callback);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void create(@NonNull String model, @NonNull OdooValues values, IOdooResponse callback) {
+        String url = getHost() + "/web/dataset/call_kw/" + model + "/create";
+        try {
+            OdooParams params = new OdooParams();
+            params.add("model", model);
+            params.add("method", "create");
+            params.add("args", new JSONArray().put(values.toJSON()));
+            params.add("kwargs", new JSONObject());
+            newJSONRequest(url, params, callback);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void write(@NonNull String model, @NonNull OdooValues values, int[] ids,
+                      IOdooResponse callback) {
+        String url = getHost() + "/web/dataset/call_kw/" + model + "/write";
+        try {
+            OdooParams params = new OdooParams();
+            params.add("model", model);
+            params.add("method", "write");
+            params.add("args", new JSONArray().put(JSONUtils.arrayToJsonArray(ids))
+                    .put(values.toJSON()));
+            params.add("kwargs", new JSONObject());
             newJSONRequest(url, params, callback);
         } catch (Exception e) {
             e.printStackTrace();

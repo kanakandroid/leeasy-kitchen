@@ -84,7 +84,7 @@ public class SetupIntentService extends IntentService {
             DataModel setup = model.getAnnotation(DataModel.class);
             BaseDataModel obj = BaseDataModel.getModel(getApplicationContext(), setup.value(), user);
             SyncResult result = new SyncResult();
-            obj.getSyncAdapter().onPerformSync(user.account, null, null, null, result);
+            obj.getSyncAdapter().onlySync().onPerformSync(user.account, null, null, null, result);
             finishedModels.add(setup.value());
             Bundle data = new Bundle();
             data.putString(KEY_MODEL, setup.value());

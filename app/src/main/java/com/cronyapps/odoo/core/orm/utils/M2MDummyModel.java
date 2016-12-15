@@ -6,7 +6,9 @@ import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
 import com.cronyapps.odoo.core.orm.type.FieldInteger;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Used for creating dummy M2M Relation model.
@@ -65,5 +67,10 @@ public class M2MDummyModel extends BaseDataModel<M2MDummyModel> {
         } else {
             return relationModel.getTableName() + "_id";
         }
+    }
+
+    public List<Integer> selectRelServerIds(Integer row_id) {
+        List<Integer> ids = new ArrayList<>();
+        return ids;
     }
 }

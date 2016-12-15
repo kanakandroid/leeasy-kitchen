@@ -2,15 +2,27 @@ package com.cronyapps.odoo.core.orm;
 
 import android.content.ContentValues;
 
+import com.cronyapps.odoo.api.wrapper.helper.OdooValues;
+import com.cronyapps.odoo.core.orm.type.FieldManyToMany;
+import com.cronyapps.odoo.core.orm.type.FieldManyToOne;
+import com.cronyapps.odoo.core.orm.type.FieldOneToMany;
+import com.cronyapps.odoo.core.orm.utils.FieldType;
+import com.cronyapps.odoo.core.orm.utils.M2MDummyModel;
 import com.cronyapps.odoo.core.orm.utils.OObjectUtils;
+
+import org.json.JSONArray;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
 public class RecordValue implements Serializable {
+    private List<String> ignoreColumns = Arrays.asList("id", "write_date");
+
     private HashMap<String, Object> _values = new HashMap<>();
 
     public void put(String key, Object value) {
@@ -112,5 +124,55 @@ public class RecordValue implements Serializable {
     public RecordValue with(String key, Object value) {
         put(key, value);
         return this;
+    }
+
+    public OdooValues toOdooValues(BaseDataModel model) {
+        OdooValues values = new OdooValues();
+        Collection<FieldType<?, ?>> columns = model.getColumns().values();
+        for (FieldType<?, ?> column : columns) {
+            if (!column.isLocalColumn() && ignoreColumns.indexOf(column.getName()) == -1) {
+                if (column.isRelationType()) {
+                    if (column instanceof FieldManyToOne) {
+                        BaseDataModel rel_model = model.getModel(column.getRelationModel());
+                        int row_id = getInt(column.getName());
+                        values.put(column.getName(), rel_model.selectServerId(row_id));
+                    }
+                    if (column instanceof FieldManyToMany) {
+                        M2MDummyModel m2mModel = new M2MDummyModel(model.getContext(),
+                                model.getOdooUser(), column, model);
+                        List<Integer> m2mServerIds = m2mModel.selectRelServerIds(getInt(BaseDataModel.ROW_ID));
+                        try {
+                            JSONArray m2mValues = new JSONArray();
+                            m2mValues.put(new JSONArray()
+                                    .put(6)
+                                    .put(false)
+                                    .put(new JSONArray(m2mServerIds)));
+                            values.put(column.getName(), m2mValues);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (column instanceof FieldOneToMany) {
+                        FieldOneToMany fo2m = (FieldOneToMany) column;
+                        fo2m.setBaseModel(model);
+                        List<Integer> o2mServerIds = fo2m.getServerIds(getInt(BaseDataModel.ROW_ID));
+                        try {
+                            JSONArray o2mValues = new JSONArray();
+                            o2mValues.put(new JSONArray()
+                                    .put(6)
+                                    .put(false)
+                                    .put(new JSONArray(o2mServerIds)));
+                            values.put(column.getName(), o2mValues);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } else {
+                    if (contains(column.getName()))
+                        values.put(column.getName(), get(column.getName()));
+                }
+            }
+        }
+        return values;
     }
 }

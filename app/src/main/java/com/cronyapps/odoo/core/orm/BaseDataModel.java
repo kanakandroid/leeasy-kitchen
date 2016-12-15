@@ -21,8 +21,10 @@ import com.cronyapps.odoo.config.AppProperties;
 import com.cronyapps.odoo.core.orm.annotation.DataModel;
 import com.cronyapps.odoo.core.orm.provider.BaseModelProvider;
 import com.cronyapps.odoo.core.orm.sync.DataSyncAdapter;
+import com.cronyapps.odoo.core.orm.type.FieldDateTime;
 import com.cronyapps.odoo.core.orm.type.FieldInteger;
 import com.cronyapps.odoo.core.orm.type.FieldManyToMany;
+import com.cronyapps.odoo.core.orm.type.FieldOneToMany;
 import com.cronyapps.odoo.core.orm.utils.CursorToRecord;
 import com.cronyapps.odoo.core.orm.utils.DataModelUtils;
 import com.cronyapps.odoo.core.orm.utils.FieldType;
@@ -55,8 +57,10 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
 
     /* BASE COLUMNS */
 
-    FieldInteger _id = new FieldInteger("Local ID").setPrimaryKey().withAutoIncrement().setLocalColumn();
-    FieldInteger id = new FieldInteger("Server ID").required().defaultValue(0);
+    public FieldInteger _id = new FieldInteger("Local ID").setPrimaryKey().withAutoIncrement().setLocalColumn();
+    public FieldInteger id = new FieldInteger("Server ID").required().defaultValue(0);
+    FieldDateTime _write_date = new FieldDateTime("Local Write DAte").defaultValue("false").setLocalColumn();
+    FieldDateTime write_date = new FieldDateTime("Write DAte").required().defaultValue("false");
 
     public BaseDataModel(Context context, OdooUser user) {
         super(context, user != null ? user : OdooUser.get(context));
@@ -94,6 +98,17 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         return columns;
     }
 
+    public List<FieldType<?, ?>> getRelationColumns() {
+        HashMap<String, FieldType<?, ?>> columns = getColumns();
+        List<FieldType<?, ?>> relationColumns = new ArrayList<>();
+        for (FieldType col : columns.values()) {
+            if (col.isRelationType()) {
+                relationColumns.add(col);
+            }
+        }
+        return relationColumns;
+    }
+
     private FieldType fieldToColumn(Field field) {
         Class<?> parentClass = field.getType().getSuperclass();
         if (parentClass != null && parentClass.getCanonicalName().equals(FieldType.TAG)) {
@@ -101,6 +116,7 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
                 FieldType<?, ?> column = (FieldType<?, ?>) field.get(this);
                 column.setName(field.getName());
                 column.setContext(mContext);
+                column.setBaseModel(this);
                 return column;
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -164,6 +180,25 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         return select(null, null, null, null);
     }
 
+
+    public List<Integer> selectRecentUpdatedIds() {
+        List<Integer> ids = new ArrayList<>();
+        ContentResolver resolver = mContext.getContentResolver();
+        try {
+            Cursor cr = resolver.query(getUri(), new String[]{"id"},
+                    _write_date.getName() + " > ?", new String[]{getLastSyncDate()}, null);
+            if (cr != null && cr.moveToFirst()) {
+                do {
+                    ids.add(cr.getInt(0));
+                } while (cr.moveToNext());
+                cr.close();
+            }
+        } catch (SQLiteException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        return ids;
+    }
+
     public ModelType select(String[] projection, String selection, String[] args, String sort) {
         ContentResolver resolver = mContext.getContentResolver();
         try {
@@ -181,6 +216,18 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
             return (ModelType) this;
         }
         return null;
+    }
+
+    public int count(String where, String... args) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cr = db.query(getTableName(), new String[]{"count(*) as total"},
+                where, args, null, null, null);
+        int count = 0;
+        if (cr.moveToFirst())
+            count = cr.getInt(0);
+        cr.close();
+        db.close();
+        return count;
     }
 
     public Cursor getRecordCursor() {
@@ -260,6 +307,11 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
                 handleManyToManyRecords(column, command, relModel, record_id, columnValues,
                         values.isServerIds());
             }
+            if (column instanceof FieldOneToMany) {
+                if (!values.isServerIds())
+                    handleOneToManyValues(column, command, relModel, record_id, columnValues,
+                            values.isServerIds());
+            }
         }
     }
 
@@ -317,6 +369,54 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         db.close();
     }
 
+    private void handleOneToManyValues(FieldType column, RelCommands command, BaseDataModel model,
+                                       int record_id, HashMap<RelCommands, List<Object>> values,
+                                       boolean isServerIds) {
+        SQLiteDatabase db = model.getWritableDatabase();
+        switch (command) {
+            case Append:
+                List<Object> items = values.get(command);
+                for (Object obj : items) {
+                    if (obj instanceof RecordValue) {
+                        RecordValue m2oValue = (RecordValue) obj;
+                        m2oValue.put(column.getRelatedColumn(), record_id);
+                        model.create((RecordValue) obj);
+                    }
+                }
+                break;
+            case Replace:
+                List<Object> ids = values.get(command);
+                // Unlink records
+                values.put(RelCommands.Unlink, ids);
+                handleOneToManyValues(column, RelCommands.Unlink, model, record_id, values, isServerIds);
+
+                // Appending record in relation with base record
+                values.put(RelCommands.Append, ids);
+                handleOneToManyValues(column, RelCommands.Append, model, record_id, values, isServerIds);
+                break;
+            case Delete:
+                // Unlink relation with base record and removing relation records
+                values.put(RelCommands.Unlink, values.get(command));
+                handleOneToManyValues(column, RelCommands.Unlink, model, record_id, values, isServerIds);
+
+                // Deleting master record from relation model with given ids
+                String deleteSql = "DELETE FROM " + model.getTableName() + " WHERE " + ROW_ID + " IN (" +
+                        TextUtils.join(",", values.get(command)) + ")";
+                db.execSQL(deleteSql);
+                break;
+            case Unlink:
+                if (!isServerIds) {
+                    // Unlink relation with base record
+                    String unlinkSQL = "UPDATE TABLE " + model.getTableName() + " SET  "
+                            + column.getRelatedColumn() + " = 0 WHERE " + ROW_ID + " IN (" +
+                            TextUtils.join(",", values.get(command)) + ")";
+                    db.execSQL(unlinkSQL);
+                }
+                break;
+        }
+        db.close();
+    }
+
     public int selectRowId(int server_id) {
         int row_id = INVALID_ROW_ID;
         select(new String[]{ROW_ID}, "id = ?", new String[]{server_id + ""}, null);
@@ -325,6 +425,39 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         }
         recordCursor.close();
         return row_id;
+    }
+
+    public String getWriteDate(int row_id) {
+        String _write_date = "false";
+        select(new String[]{this._write_date.getName()}, ROW_ID + " = ?", new String[]{row_id + ""}, null);
+        if (recordCursor.moveToFirst()) {
+            _write_date = recordCursor.getString(0);
+        }
+        recordCursor.close();
+        return _write_date;
+    }
+
+    public List<Integer> selectServerIds(String column, int row_id) {
+        List<Integer> ids = new ArrayList<>();
+
+        select(new String[]{"id"}, column + " = ? and id != ?", new String[]{row_id + "", "0"}, null);
+        if (recordCursor.moveToFirst()) {
+            do {
+                ids.add(recordCursor.getInt(0));
+            } while (recordCursor.moveToNext());
+        }
+        recordCursor.close();
+        return ids;
+    }
+
+    public int selectServerId(int row_id) {
+        int server_id = INVALID_ROW_ID;
+        select(new String[]{"id"}, ROW_ID + " = ?", new String[]{row_id + ""}, null);
+        if (recordCursor.moveToFirst()) {
+            server_id = recordCursor.getInt(0);
+        }
+        recordCursor.close();
+        return server_id;
     }
 
     /**
@@ -369,6 +502,9 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         return BaseApp.getModel(context, modelName, user);
     }
 
+    public BaseDataModel getModel(String modelName) {
+        return getModel(getContext(), modelName, getOdooUser());
+    }
 
     public BaseDataModel getModel(Class<? extends BaseDataModel> modelClass) {
         DataModel model = modelClass.getAnnotation(DataModel.class);
@@ -403,6 +539,11 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         DataSyncAdapter adapter = new DataSyncAdapter(getContext());
         adapter.setModel(this);
         return adapter;
+    }
+
+    public String[] getProjection() {
+        List<String> columnNames = new ArrayList<>(getColumns().keySet());
+        return columnNames.toArray(new String[columnNames.size()]);
     }
 
     public String[] getSyncableFields() {

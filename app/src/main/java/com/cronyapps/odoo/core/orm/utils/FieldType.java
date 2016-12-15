@@ -20,6 +20,7 @@ public abstract class FieldType<T, Type> {
     private Class<? extends BaseDataModel> relationModel;
     private String relatedColumn = null;
     protected HashMap<String, String> selectionMap = new HashMap<>();
+    private BaseDataModel baseModel;
 
     //    for many to many
     private String relTableName, baseColumnName, relationColumnName;
@@ -32,6 +33,15 @@ public abstract class FieldType<T, Type> {
     public T setName(String name) {
         this.name = name;
         return (T) this;
+    }
+
+    public T setBaseModel(BaseDataModel model) {
+        baseModel = model;
+        return (T) this;
+    }
+
+    public BaseDataModel getBaseModel() {
+        return baseModel;
     }
 
     public String getName() {
