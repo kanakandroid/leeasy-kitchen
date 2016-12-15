@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
+import com.cronyapps.odoo.core.orm.RecordValue;
 import com.cronyapps.odoo.core.orm.type.FieldInteger;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ public class M2MDummyModel extends BaseDataModel<M2MDummyModel> {
         baseModel = base;
         baseColumn = column;
         relationModel = getModel(column.getRelationModel());
+        getColumns();
     }
 
     @Override
@@ -69,8 +71,18 @@ public class M2MDummyModel extends BaseDataModel<M2MDummyModel> {
         }
     }
 
+    public <T> T selectRelationRecords(int base_id) {
+        String sql = "SELECT " + baseRelRelationColumn.getName() + " FROM " + getTableName() + " WHERE " + baseRelColumn.getName() + " = ?";
+        return (T) relationModel.select(null, BaseDataModel.ROW_ID + " IN (" + sql + ")", new String[]{base_id + ""}, null);
+    }
+
     public List<Integer> selectRelServerIds(Integer row_id) {
         List<Integer> ids = new ArrayList<>();
+        String sql = "SELECT " + baseRelRelationColumn.getName() + " FROM " + getTableName() + " WHERE " + baseRelColumn.getName() + " = ?";
+        List<RecordValue> values = relationModel.select(null, BaseDataModel.ROW_ID + " IN (" + sql + ")", new String[]{row_id + ""});
+        for (RecordValue value : values) {
+            ids.add(value.getInt("id"));
+        }
         return ids;
     }
 }

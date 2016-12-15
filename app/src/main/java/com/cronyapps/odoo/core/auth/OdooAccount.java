@@ -2,11 +2,17 @@ package com.cronyapps.odoo.core.auth;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.content.Context;
+import android.os.Build;
 
 import com.cronyapps.odoo.R;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
+import com.cronyapps.odoo.config.AppConfig;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,33 +84,23 @@ public class OdooAccount {
         }
         return null;
     }
-//
-//    public void updateDetails(OdooUser user) {
-//        if (hasAccount(user.getAccountName())) {
-//            Account account = findAccount(user.getAccountName());
-//            Bundle userData = user.toBundle();
-//            for (String key : userData.keySet()) {
-//                accountManager.setUserData(account, key, userData.get(key) + "");
-//            }
-//        }
-//    }
 
-//    public boolean removeAccount(OdooUser user) {
-//        if (hasAccount(user.getAccountName())) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-//                return accountManager.removeAccountExplicitly(findAccount(user.getAccountName()));
-//            } else {
-//                try {
-//                    AccountManagerFuture<Boolean> result = accountManager
-//                            .removeAccount(findAccount(user.getAccountName()), null, null);
-//                    return result.getResult();
-//                } catch (OperationCanceledException | IOException | AuthenticatorException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//        return false;
-//    }
+    public boolean removeAccount(OdooUser user) {
+        if (hasAccount(user.getAccountName())) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                return accountManager.removeAccountExplicitly(findAccount(user.getAccountName()));
+            } else {
+                try {
+                    AccountManagerFuture<Boolean> result = accountManager
+                            .removeAccount(findAccount(user.getAccountName()), null, null);
+                    return result.getResult();
+                } catch (OperationCanceledException | IOException | AuthenticatorException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
 
     public List<OdooUser> getUserAccounts() {
         List<OdooUser> accounts = new ArrayList<>();
@@ -116,7 +112,7 @@ public class OdooAccount {
 
     public OdooUser getActiveAccount() {
         for (OdooUser user : getUserAccounts()) {
-            if (user.active) {
+            if (user.active || !AppConfig.ALLOW_MULTI_ACCOUNT) {
                 return user;
             }
         }

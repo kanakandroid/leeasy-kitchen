@@ -29,6 +29,7 @@ public class SetupActivity extends CronyActivity {
     private TextView txvSetupStatus;
     private SharedPreferences preferences;
     private OdooUser user;
+    private boolean noAccess = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -39,6 +40,10 @@ public class SetupActivity extends CronyActivity {
         user = OdooUser.get(this);
         TextView txvUserName = (TextView) findViewById(R.id.welcomeUser);
         txvUserName.setText(String.format(Locale.getDefault(), "Hello, %s", user.name));
+        requestSetup();
+    }
+
+    private void requestSetup() {
         Intent intent = new Intent(this, SetupIntentService.class);
         startService(intent);
     }
@@ -74,11 +79,13 @@ public class SetupActivity extends CronyActivity {
 
     @Override
     public void onBackPressed() {
-        if (isSetupPending(this))
-            Snackbar.make(getContentView(), R.string.msg_one_time_setup, Snackbar.LENGTH_LONG)
-                    .show();
-        else
-            super.onBackPressed();
+        if (!noAccess) {
+            if (isSetupPending(this))
+                Snackbar.make(getContentView(), R.string.msg_one_time_setup, Snackbar.LENGTH_LONG)
+                        .show();
+            else
+                super.onBackPressed();
+        }
     }
 
     private BroadcastReceiver setupStateReceiver = new BroadcastReceiver() {
@@ -88,6 +95,7 @@ public class SetupActivity extends CronyActivity {
             if (data != null) {
                 String key_result = data.getString(SetupIntentService.KEY_RESULT_RESPONSE);
                 assert key_result != null;
+                noAccess = false;
                 switch (key_result) {
                     case SetupIntentService.KEY_SETUP_IN_PROGRESS:
                         int totalTask = data.getInt(SetupIntentService.KEY_TOTAL_MODELS);
@@ -112,6 +120,17 @@ public class SetupActivity extends CronyActivity {
                                 finish();
                             }
                         });
+                        break;
+                    case SetupIntentService.KEY_NO_APP_ACCESS:
+                        noAccess = true;
+                        Snackbar.make(getContentView(), R.string.msg_no_access_to_app, Snackbar.LENGTH_INDEFINITE)
+                                .setAction(R.string.label_retry, new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        requestSetup();
+                                    }
+                                })
+                                .show();
                         break;
                 }
             }

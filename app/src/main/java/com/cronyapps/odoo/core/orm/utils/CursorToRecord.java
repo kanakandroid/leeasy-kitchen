@@ -4,6 +4,8 @@ import android.database.Cursor;
 
 import com.cronyapps.odoo.core.orm.BaseDataModel;
 import com.cronyapps.odoo.core.orm.RecordValue;
+import com.cronyapps.odoo.core.orm.type.FieldManyToMany;
+import com.cronyapps.odoo.core.orm.type.FieldOneToMany;
 
 import java.util.HashMap;
 
@@ -14,8 +16,15 @@ public class CursorToRecord {
                 model.getColumns();
         for (String column : columns.keySet()) {
             FieldType col = columns.get(column);
-            Object value = getValue(cr, column);
-            col.setValue(value);
+            if (col instanceof FieldManyToMany) {
+                FieldManyToMany m2m = (FieldManyToMany) col;
+                m2m.setBaseRowId(cr.getInt(cr.getColumnIndex(BaseDataModel.ROW_ID)));
+            } else if (col instanceof FieldOneToMany) {
+//FIXME:
+            } else {
+                Object value = getValue(cr, column);
+                col.setValue(value);
+            }
         }
     }
 

@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.cronyapps.odoo.base.addons.res.models.ResUsers;
+import com.cronyapps.odoo.config.AppConfig;
 import com.cronyapps.odoo.core.auth.OdooAccount;
 
 import java.util.Locale;
@@ -138,5 +140,18 @@ public class OdooUser implements Parcelable {
 
     public static OdooUser get(Context context) {
         return OdooAccount.getInstance(context).getActiveAccount();
+    }
+
+    public boolean hasGroup(Context context, String group_ext_id) {
+        ResUsers user = new ResUsers(context, this);
+        return user.hasGroup(uid, group_ext_id);
+    }
+
+    public String getGroup(Context context) {
+        for (String group : AppConfig.USER_GROUPS) {
+            if (hasGroup(context, group))
+                return group;
+        }
+        return null;
     }
 }

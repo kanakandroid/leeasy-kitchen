@@ -20,7 +20,7 @@ public class FieldManyToOne extends FieldType<FieldManyToOne, Integer> {
         return "INTEGER";
     }
 
-    // todo, implement read
+    // todo, implement readRelationData
     public <RelModel> RelModel read() {
         return null;
     }

@@ -259,6 +259,11 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         return count;
     }
 
+    public Cursor execute(String sql, String... args) {
+        SQLiteDatabase db = getReadableDatabase();
+        return db.rawQuery(sql, args);
+    }
+
     public Cursor getRecordCursor() {
         return recordCursor;
     }

@@ -4,7 +4,5 @@ public class AppConfig {
 
     public static Boolean ALLOW_MULTI_ACCOUNT = true;
 
-
-    public static String[] DEPENDS_ON_MODULES = {"base"};
-    public static String[] USER_GROUPS = {};
+    public static String[] USER_GROUPS = {"base.group_user", "hr.group_hr_manager", "hr.group_hr_user"};
 }

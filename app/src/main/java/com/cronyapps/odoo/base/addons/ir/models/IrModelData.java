@@ -6,16 +6,14 @@ import com.cronyapps.odoo.api.wrapper.helper.ODomain;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.base.addons.res.models.ResGroups;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
+import com.cronyapps.odoo.core.orm.RecordValue;
 import com.cronyapps.odoo.core.orm.annotation.DataModel;
-import com.cronyapps.odoo.core.orm.annotation.DataModelSetup;
-import com.cronyapps.odoo.core.orm.annotation.ModelSetup;
 import com.cronyapps.odoo.core.orm.type.FieldChar;
 import com.cronyapps.odoo.core.orm.type.FieldInteger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@DataModelSetup(ModelSetup.CONFIGURATION)
 @DataModel("ir.model.data")
 public class IrModelData extends BaseDataModel<IrModelData> {
 
@@ -26,6 +24,19 @@ public class IrModelData extends BaseDataModel<IrModelData> {
 
     public IrModelData(Context context, OdooUser user) {
         super(context, user);
+    }
+
+    public int getResId(String xml_id) {
+        String[] names = xml_id.split("\\.");
+        List<RecordValue> values;
+        if (names.length == 1)
+            values = select(null, "name = ?", names[0]);
+        else
+            values = select(null, "module = ? and name = ?", names[0], names[1]);
+        if (!values.isEmpty()) {
+            return values.get(0).getInt("res_id");
+        }
+        return INVALID_ROW_ID;
     }
 
     @Override
