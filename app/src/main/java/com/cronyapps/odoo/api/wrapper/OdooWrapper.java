@@ -365,7 +365,7 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
         }
     }
 
-    public void write(@NonNull String model, @NonNull OdooValues values, int[] ids,
+    public void write(@NonNull String model, @NonNull OdooValues values, Integer[] ids,
                       IOdooResponse callback) {
         String url = getHost() + "/web/dataset/call_kw/" + model + "/write";
         try {
@@ -374,6 +374,20 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
             params.add("method", "write");
             params.add("args", new JSONArray().put(JSONUtils.arrayToJsonArray(ids))
                     .put(values.toJSON()));
+            params.add("kwargs", new JSONObject());
+            newJSONRequest(url, params, callback);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void unlink(@NonNull String model, @NonNull Integer[] ids, IOdooResponse callback) {
+        String url = getHost() + "/web/dataset/call_kw/" + model + "/unlink";
+        try {
+            OdooParams params = new OdooParams();
+            params.add("model", model);
+            params.add("method", "unlink");
+            params.add("args", new JSONArray().put(JSONUtils.arrayToJsonArray(ids)));
             params.add("kwargs", new JSONObject());
             newJSONRequest(url, params, callback);
         } catch (Exception e) {

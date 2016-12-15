@@ -191,8 +191,28 @@ public class BaseModelProvider extends ContentProvider {
     @Override
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         BaseDataModel model = getModel(uri);
-        //TODO: Implement
-        return 0;
+        int match = matcher.match(uri);
+        int count = 0;
+        switch (match) {
+            case COLLECTION:
+                SQLiteDatabase db = model.getWritableDatabase();
+                count = db.delete(model.getTableName(), selection, selectionArgs);
+                break;
+            case SINGLE_ROW:
+                db = model.getWritableDatabase();
+                String row_id = uri.getLastPathSegment();
+                count = db.delete(model.getTableName(), BaseDataModel.ROW_ID + "  = ?", new String[]{row_id});
+                break;
+            case UriMatcher.NO_MATCH:
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        Context ctx = getContext();
+        if (ctx != null) {
+            ctx.getContentResolver().notifyChange(uri, null);
+        }
+        return count;
     }
 
     private void updateRelationRecords(BaseDataModel model, ContentValues values, int base_row_id) {

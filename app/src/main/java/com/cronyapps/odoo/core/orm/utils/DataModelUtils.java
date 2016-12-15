@@ -9,6 +9,11 @@ public class DataModelUtils {
         DataModel dataModel = cls.getAnnotation(DataModel.class);
         if (dataModel != null)
             return dataModel.value();
+        else {
+            DataModel.Local local = cls.getAnnotation(DataModel.Local.class);
+            if (local != null)
+                return local.value();
+        }
         return null;
     }
 

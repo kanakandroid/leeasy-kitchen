@@ -20,6 +20,7 @@ import com.cronyapps.odoo.api.wrapper.helper.ODomain;
 import com.cronyapps.odoo.api.wrapper.helper.OdooFields;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooErrorListener;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooResponse;
+import com.cronyapps.odoo.base.addons.internal.models.ModelsRecordState;
 import com.cronyapps.odoo.core.auth.OdooAccount;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
 import com.cronyapps.odoo.core.orm.RecordValue;
@@ -35,7 +36,8 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
     private BaseDataModel model;
     private OdooApiClient odooClient;
     private OdooRecordUtils recordUtils;
-    public boolean onlySync = false;
+    private ModelsRecordState recordState;
+    private boolean onlySync = false;
     private int offset = 0;
     private int limit = 80;
 
@@ -51,6 +53,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
         Log.v(TAG, "Performing sync for " + account.name);
         Log.v(TAG, "Model: " + model.getModelName());
         model.setUser(OdooAccount.getInstance(getContext()).getAccount(account.name));
+        recordState = (ModelsRecordState) model.getModel(ModelsRecordState.class);
         odooClient = new OdooApiClient.Builder(getContext())
                 .setUser(model.getOdooUser())
                 .synchronizedRequests()
@@ -101,8 +104,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
 
     @Override
     public void onError(OdooError error) {
-        Log.e(">>>", error.getMessage(), error);
-
+        Log.e(">>>", error.getMessage());
     }
 
     private void processResult(@NonNull BaseDataModel model, OdooResult result, boolean ignoreRelationRecords,
@@ -136,7 +138,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
         }
 
         // ignoring if requested by relation sub process
-        if (syncResult != null) {
+        if (syncResult != null && !onlySync) {
             // Updating local changes to server
             // List of server ids need to update on server
             List<Integer> needToUpdateOnServerIds = model.selectRecentUpdatedIds();
@@ -153,18 +155,29 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
 
         // processing records that need to be update on server
         // already process at time of creating list of record tobe insert/update
-        if (!recordUtils.getUpdateToServerList().isEmpty()) {
+        if (!onlySync && !recordUtils.getUpdateToServerList().isEmpty()) {
             updateRecordsOnServer(model, recordUtils.getUpdateToServerList(), syncResult);
         }
 
         if (!onlySync) {
+            // Creating new created record on server
             createRecordsOnServer(model, syncResult);
-            //TODO:
-        /*
-            2. Check for deleted record from server
-            3. Check for local deleted records also check for write date of local deleted record
-                if local deleted record is older than server write_date, just re-create it.
-         */
+
+            // Deleting server record if user deleted locally
+            List<Integer> server_ids = recordState.getDeletedServerIds(model.getModelName());
+            if (!server_ids.isEmpty()) {
+                removeRecordFromServer(model, server_ids, syncResult);
+                Log.v(TAG, server_ids.size() + " record(s) deleted from server for model ("
+                        + model.getModelName() + ")");
+            }
+
+            List<Integer> needToDeleteFromLocal = getLocalDeleteIds(model);
+            if (!needToDeleteFromLocal.isEmpty()) {
+                int count = model.getContext().getContentResolver().delete(model.getUri(),
+                        "id in (" + TextUtils.join(", ", needToDeleteFromLocal) + ")", null);
+                Log.v(TAG, count + " record(s) deleted from local db for model ("
+                        + model.getModelName() + ")");
+            }
         }
         // request other data if length is greater than limit by setting offset.
         if (length != 0 && length != values.size() && length > limit) {
@@ -183,6 +196,18 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
         }
     }
 
+    private void removeRecordFromServer(final BaseDataModel model, final List<Integer> ids, final SyncResult syncResult) {
+        odooClient.unlink(model.getModelName(), ids.toArray(new Integer[ids.size()]), new IOdooResponse() {
+            @Override
+            public void onResult(OdooResult result) {
+                if (result.getBoolean("result")) {
+                    syncResult.stats.numDeletes += ids.size();
+                    recordState.removeAll(model.getModelName());
+                }
+            }
+        });
+    }
+
     private void updateRecordsOnServer(BaseDataModel baseModel, List<Integer> localIds,
                                        final SyncResult syncResult) {
         OdooRecordUtils recordUtils = new OdooRecordUtils(model);
@@ -192,7 +217,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
         if (cr.moveToFirst()) {
             do {
                 RecordValue value = recordUtils.cursorToRecordValue(cr);
-                int[] ids = {value.getInt("id")};
+                Integer[] ids = {value.getInt("id")};
                 odooClient.write(model.getModelName(), value.toOdooValues(model), ids, new IOdooResponse() {
                     @Override
                     public void onResult(OdooResult result) {
@@ -233,5 +258,21 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
                 });
             } while (cr.moveToNext());
         }
+    }
+
+    private List<Integer> getLocalDeleteIds(BaseDataModel model) {
+        final List<Integer> server_ids = model.getServerIds();
+        ODomain domain = new ODomain();
+        domain.add("id", "in", server_ids);
+        odooClient.searchRead(model.getModelName(), new OdooFields("id"), domain, 0, 0, null, new IOdooResponse() {
+            @Override
+            public void onResult(OdooResult result) {
+                for (OdooRecord record : result.getRecords()) {
+                    int index = server_ids.indexOf(record.getInt("id"));
+                    if (index != -1) server_ids.remove(index);
+                }
+            }
+        });
+        return server_ids;
     }
 }

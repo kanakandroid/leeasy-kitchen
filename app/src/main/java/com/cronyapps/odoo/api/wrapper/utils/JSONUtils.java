@@ -4,7 +4,7 @@ import org.json.JSONArray;
 
 public class JSONUtils {
 
-    public static JSONArray arrayToJsonArray(int[] items) {
+    public static JSONArray arrayToJsonArray(Integer[] items) {
         JSONArray itemArray = new JSONArray();
         try {
             for (int item : items) itemArray.put(item);

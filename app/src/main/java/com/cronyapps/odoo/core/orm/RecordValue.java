@@ -132,12 +132,12 @@ public class RecordValue implements Serializable {
         for (FieldType<?, ?> column : columns) {
             if (!column.isLocalColumn() && ignoreColumns.indexOf(column.getName()) == -1) {
                 if (column.isRelationType()) {
-                    if (column instanceof FieldManyToOne) {
+                    if (column instanceof FieldManyToOne && get(column.getName()) != null) {
                         BaseDataModel rel_model = model.getModel(column.getRelationModel());
                         int row_id = getInt(column.getName());
                         values.put(column.getName(), rel_model.selectServerId(row_id));
                     }
-                    if (column instanceof FieldManyToMany) {
+                    if (column instanceof FieldManyToMany && get(column.getName()) != null) {
                         M2MDummyModel m2mModel = new M2MDummyModel(model.getContext(),
                                 model.getOdooUser(), column, model);
                         List<Integer> m2mServerIds = m2mModel.selectRelServerIds(getInt(BaseDataModel.ROW_ID));
@@ -152,7 +152,7 @@ public class RecordValue implements Serializable {
                             e.printStackTrace();
                         }
                     }
-                    if (column instanceof FieldOneToMany) {
+                    if (column instanceof FieldOneToMany && get(column.getName()) != null) {
                         FieldOneToMany fo2m = (FieldOneToMany) column;
                         fo2m.setBaseModel(model);
                         List<Integer> o2mServerIds = fo2m.getServerIds(getInt(BaseDataModel.ROW_ID));

@@ -10,7 +10,6 @@ import android.view.View;
 import com.cronyapps.odoo.base.addons.res.models.ResPartner;
 import com.cronyapps.odoo.core.helper.CronyActivity;
 import com.cronyapps.odoo.core.orm.RecordValue;
-import com.cronyapps.odoo.core.orm.RelValues;
 import com.cronyapps.odoo.core.utils.ODateUtils;
 
 public class MainActivity extends CronyActivity {
@@ -28,17 +27,17 @@ public class MainActivity extends CronyActivity {
         value.put("name", ODateUtils.getDate() + " DUMMY");
         value.put("city", "Gandhinagar");
 
-        RecordValue country = new RecordValue();
-        country.put("name", "Dummy Country new");
-        country.put("code", "DCOn");
-
-        RecordValue state = new RecordValue();
-        state.put("name", "Dummy state new");
-        state.put("code", "DUMn");
-
-        country.put("state_ids", new RelValues().append(state));
-
-        value.put("country_id", country);
+//        RecordValue country = new RecordValue();
+//        country.put("name", "Dummy Country new");
+//        country.put("code", "DCOn");
+//
+//        RecordValue state = new RecordValue();
+//        state.put("name", "Dummy state new");
+//        state.put("code", "DUMn");
+//
+//        country.put("state_ids", new RelValues().append(state));
+//
+//        value.put("country_id", country);
 
 //        Log.e(">>", "new created: " + partners.create(value));
 
@@ -56,16 +55,18 @@ public class MainActivity extends CronyActivity {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                ResPartner partner = partners.browse(2);
-                Log.e(">>>", partner + "#" + partner.id.getValue() + " : " + partner.name.getValue());
+                ResPartner partner = partners.browse(partners.selectRowId(73));
+                if (partner != null)
+                    Log.e(">>>", partner + "#" + partner.id.getValue() + " : " + partner.name.getValue());
             }
         }.execute();
 //        partners.exportDB();
     }
 
     public void updateRecord(View view) {
-        RecordValue value = new RecordValue();
-        value.put("name", "Updated record after sync");
-        Log.e(">>", "Updated #2 " + partners.update(value, 2));
+//        RecordValue value = new RecordValue();
+//        value.put("name", "Updated record after sync");
+//        Log.e(">>", "Updated #2 " + partners.update(value, 2));
+        partners.delete(partners.selectRowId(73));
     }
 }

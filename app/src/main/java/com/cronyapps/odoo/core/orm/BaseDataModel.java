@@ -16,11 +16,13 @@ import com.cronyapps.odoo.BaseApp;
 import com.cronyapps.odoo.BuildConfig;
 import com.cronyapps.odoo.api.wrapper.helper.ODomain;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
+import com.cronyapps.odoo.base.addons.internal.models.ModelsRecordState;
 import com.cronyapps.odoo.base.addons.ir.models.IrModel;
 import com.cronyapps.odoo.config.AppProperties;
 import com.cronyapps.odoo.core.orm.annotation.DataModel;
 import com.cronyapps.odoo.core.orm.provider.BaseModelProvider;
 import com.cronyapps.odoo.core.orm.sync.DataSyncAdapter;
+import com.cronyapps.odoo.core.orm.sync.utils.OdooRecordUtils;
 import com.cronyapps.odoo.core.orm.type.FieldDateTime;
 import com.cronyapps.odoo.core.orm.type.FieldInteger;
 import com.cronyapps.odoo.core.orm.type.FieldManyToMany;
@@ -30,6 +32,7 @@ import com.cronyapps.odoo.core.orm.utils.DataModelUtils;
 import com.cronyapps.odoo.core.orm.utils.FieldType;
 import com.cronyapps.odoo.core.orm.utils.M2MDummyModel;
 import com.cronyapps.odoo.core.orm.utils.RelCommands;
+import com.cronyapps.odoo.core.utils.ODateUtils;
 import com.cronyapps.odoo.core.utils.OStorageUtils;
 
 import java.io.File;
@@ -180,21 +183,29 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         return select(null, null, null, null);
     }
 
+    public List<RecordValue> select(String[] projection, String where, String... args) {
+        OdooRecordUtils utils = new OdooRecordUtils(this);
+        List<RecordValue> items = new ArrayList<>();
+        ContentResolver resolver = mContext.getContentResolver();
+        try {
+            Cursor cr = resolver.query(getUri(), projection, where, args, null);
+            if (cr != null && cr.moveToFirst()) {
+                do {
+                    items.add(utils.cursorToRecordValue(cr));
+                } while (cr.moveToNext());
+            }
+        } catch (SQLiteException e) {
+            e.printStackTrace();
+        }
+        return items;
+    }
 
     public List<Integer> selectRecentUpdatedIds() {
         List<Integer> ids = new ArrayList<>();
-        ContentResolver resolver = mContext.getContentResolver();
-        try {
-            Cursor cr = resolver.query(getUri(), new String[]{"id"},
-                    _write_date.getName() + " > ?", new String[]{getLastSyncDate()}, null);
-            if (cr != null && cr.moveToFirst()) {
-                do {
-                    ids.add(cr.getInt(0));
-                } while (cr.moveToNext());
-                cr.close();
-            }
-        } catch (SQLiteException e) {
-            Log.e(TAG, e.getMessage());
+        if (getLastSyncDate() != null) {
+            for (RecordValue item : select(new String[]{"id"}, _write_date.getName() + " > ?",
+                    getLastSyncDate()))
+                ids.add(item.getInt("id"));
         }
         return ids;
     }
@@ -227,6 +238,24 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
             count = cr.getInt(0);
         cr.close();
         db.close();
+        return count;
+    }
+
+    public int delete(int row_id) {
+        ContentResolver resolver = mContext.getContentResolver();
+        int count = 0;
+        try {
+            int server_id = selectServerId(row_id);
+            count = resolver.delete(Uri.withAppendedPath(getUri(), row_id + ""), ROW_ID + " = ?",
+                    new String[]{row_id + ""});
+            if (count > 0) {
+                // entry in model record state
+                ModelsRecordState state = (ModelsRecordState) getModel(ModelsRecordState.class);
+                state.addState(getModelName(), server_id, ODateUtils.getUTCDate());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return count;
     }
 
@@ -507,9 +536,9 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
     }
 
     public BaseDataModel getModel(Class<? extends BaseDataModel> modelClass) {
-        DataModel model = modelClass.getAnnotation(DataModel.class);
+        String model = DataModelUtils.getModelName(modelClass);
         if (model != null)
-            return getModel(getContext(), model.value(), getOdooUser());
+            return getModel(getContext(), model, getOdooUser());
         return null;
     }
 

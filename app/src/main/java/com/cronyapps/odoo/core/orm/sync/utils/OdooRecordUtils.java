@@ -6,11 +6,11 @@ import com.cronyapps.odoo.api.wrapper.handler.gson.OdooRecord;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
 import com.cronyapps.odoo.core.orm.RecordValue;
 import com.cronyapps.odoo.core.orm.RelValues;
-import com.cronyapps.odoo.core.orm.annotation.DataModel;
 import com.cronyapps.odoo.core.orm.type.FieldInteger;
 import com.cronyapps.odoo.core.orm.type.FieldManyToMany;
 import com.cronyapps.odoo.core.orm.type.FieldManyToOne;
 import com.cronyapps.odoo.core.orm.type.FieldOneToMany;
+import com.cronyapps.odoo.core.orm.utils.DataModelUtils;
 import com.cronyapps.odoo.core.orm.utils.FieldType;
 import com.cronyapps.odoo.core.utils.ODateUtils;
 
@@ -63,7 +63,7 @@ public class OdooRecordUtils {
         return value;
     }
 
-    private void bindCursor(Cursor cr, RecordValue recordValue) {
+    public void bindCursor(Cursor cr, RecordValue recordValue) {
         for (String col : model.getProjection()) {
             int index = cr.getColumnIndex(col);
             if (index != -1) {
@@ -104,11 +104,6 @@ public class OdooRecordUtils {
 
     public RecordValue toRecordValue(OdooRecord record) {
         RecordValue value = new RecordValue();
-        // TODO: create list of server ids for later use.
-        // 1. for deleting local records
-        // 2. updating record based on write date from server
-        // 3. re-create record if local deleted based on write date of server
-
         for (String key : record.keySet()) {
             Object parseValue = parseValue(columns.get(key), record.get(key));
             if (parseValue != null) {
@@ -150,14 +145,14 @@ public class OdooRecordUtils {
     }
 
     private void putRelationRecord(FieldType column, Integer id) {
-        DataModel model = (DataModel) column.getRelationModel().getAnnotation(DataModel.class);
+        String model = DataModelUtils.getModelName(column.getRelationModel());
         if (model != null) {
             HashSet<Integer> ids = new HashSet<>();
-            if (relationModelIds.containsKey(model.value())) {
-                ids.addAll(relationModelIds.get(model.value()));
+            if (relationModelIds.containsKey(model)) {
+                ids.addAll(relationModelIds.get(model));
             }
             ids.add(id);
-            relationModelIds.put(model.value(), new ArrayList<>(ids));
+            relationModelIds.put(model, new ArrayList<>(ids));
         }
     }
 
