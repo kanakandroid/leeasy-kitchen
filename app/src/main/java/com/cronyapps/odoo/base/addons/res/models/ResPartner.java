@@ -10,6 +10,7 @@ import com.cronyapps.odoo.core.orm.type.FieldChar;
 
 @DataModel("res.partner")
 public class ResPartner extends BaseDataModel<ResPartner> {
+
     public FieldChar name = new FieldChar("Name").required();
 
     public ResPartner(Context context, OdooUser user) {

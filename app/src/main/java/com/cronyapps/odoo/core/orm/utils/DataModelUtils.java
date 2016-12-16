@@ -1,7 +1,10 @@
 package com.cronyapps.odoo.core.orm.utils;
 
 import com.cronyapps.odoo.core.orm.BaseDataModel;
+import com.cronyapps.odoo.core.orm.annotation.API;
 import com.cronyapps.odoo.core.orm.annotation.DataModel;
+
+import java.lang.reflect.Field;
 
 public class DataModelUtils {
 
@@ -15,6 +18,11 @@ public class DataModelUtils {
                 return local.value();
         }
         return null;
+    }
+
+    public static String getFieldName(Field field) {
+        API.FieldName name = field.getAnnotation(API.FieldName.class);
+        return name != null ? name.value() : field.getName();
     }
 
 }

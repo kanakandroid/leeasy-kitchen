@@ -117,7 +117,7 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         if (parentClass != null && parentClass.getCanonicalName().equals(FieldType.TAG)) {
             try {
                 FieldType<?, ?> column = (FieldType<?, ?>) field.get(this);
-                column.setName(field.getName());
+                column.setName(DataModelUtils.getFieldName(field));
                 column.setContext(mContext);
                 column.setBaseModel(this);
                 return column;
