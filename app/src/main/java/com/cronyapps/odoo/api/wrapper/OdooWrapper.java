@@ -278,6 +278,7 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
         user.company_id = result.getInt("company_id");
         user.partner_id = result.getInt("partner_id");
         user.session_id = result.getString("session_id");
+        user.fcm_project_id = odooSession.fcm_project_id;
 
         // Getting user detail (name, avatar and partner_id)
         OdooFields fields = new OdooFields();

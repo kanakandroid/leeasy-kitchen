@@ -7,6 +7,7 @@ public class OdooSession {
 
     public String database = null, session_id, username = null, language = null, time_zone = null;
     public Integer company_id = null, partner_id = null, uid = null;
+    public String fcm_project_id;
 
     public static OdooSession parse(OdooResult result) {
         OdooSession session = new OdooSession();
@@ -21,7 +22,9 @@ public class OdooSession {
             session.partner_id = result.getInt("partner_id");
         if (!(result.get("uid") instanceof Boolean))
             session.uid = result.getInt("uid");
-
+        if (result.containsKey("fcm_project_id")) {
+            session.fcm_project_id = result.getString("fcm_project_id");
+        }
         OdooResult user_context = result.getMap("user_context");
         session.language = user_context.getString("lang");
         session.time_zone = user_context.getString("tz");

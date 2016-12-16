@@ -17,4 +17,7 @@ public abstract class CronyActivity extends AppCompatActivity {
         return AppSyncUtils.get(this, user);
     }
 
+    public OdooUser getUser() {
+        return OdooUser.get(this);
+    }
 }

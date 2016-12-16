@@ -15,7 +15,7 @@ import java.util.Locale;
 
 public class OdooUser implements Parcelable {
     public String name, username, language, time_zone, database, host, session_id;
-    public String avatar, db_uuid, db_created_on;
+    public String avatar, db_uuid, db_created_on, fcm_project_id;
     public Integer company_id, partner_id, uid;
     public Account account;
     public Boolean active = false;
@@ -33,6 +33,7 @@ public class OdooUser implements Parcelable {
         data.putString("database", database);
         data.putString("host", host);
         data.putString("session_id", session_id);
+        data.putString("fcm_project_id", fcm_project_id);
         data.putString("avatar", avatar);
         data.putString("db_uuid", db_uuid);
         data.putString("db_created_on", db_created_on);
@@ -52,6 +53,7 @@ public class OdooUser implements Parcelable {
         database = manager.getUserData(account, "database");
         host = manager.getUserData(account, "host");
         session_id = manager.getUserData(account, "session_id");
+        fcm_project_id = manager.getUserData(account, "fcm_project_id");
         avatar = manager.getUserData(account, "avatar");
         db_uuid = manager.getUserData(account, "db_uuid");
         db_created_on = manager.getUserData(account, "db_created_on");
@@ -70,6 +72,7 @@ public class OdooUser implements Parcelable {
         database = in.readString();
         host = in.readString();
         session_id = in.readString();
+        fcm_project_id = in.readString();
         db_uuid = in.readString();
         db_created_on = in.readString();
         company_id = in.readInt();
@@ -130,6 +133,7 @@ public class OdooUser implements Parcelable {
         dest.writeString(database);
         dest.writeString(host);
         dest.writeString(session_id);
+        dest.writeString(fcm_project_id);
         dest.writeString(db_uuid);
         dest.writeString(db_created_on);
         dest.writeInt(company_id);
