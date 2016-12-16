@@ -35,9 +35,9 @@ public class BaseModelProvider extends ContentProvider {
     private final int SINGLE_ROW = 2;
     private HashMap<String, BaseDataModel> models = new HashMap<>();
 
-    public static Uri buildURI(String model, String userName) {
+    public static Uri buildURI(String authority, String model, String userName) {
         Uri.Builder uriBuilder = new Uri.Builder();
-        uriBuilder.authority(BaseDataModel.BASE_AUTHORITY);
+        uriBuilder.authority(authority);
         uriBuilder.appendPath(model);
         uriBuilder.appendQueryParameter(KEY_MODEL, model);
         uriBuilder.appendQueryParameter(KEY_USER, userName);

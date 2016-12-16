@@ -18,32 +18,44 @@ import com.cronyapps.odoo.api.wrapper.handler.gson.OdooRecord;
 import com.cronyapps.odoo.api.wrapper.handler.gson.OdooResult;
 import com.cronyapps.odoo.api.wrapper.helper.ODomain;
 import com.cronyapps.odoo.api.wrapper.helper.OdooFields;
+import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooErrorListener;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooResponse;
 import com.cronyapps.odoo.base.addons.internal.models.ModelsRecordState;
 import com.cronyapps.odoo.core.auth.OdooAccount;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
 import com.cronyapps.odoo.core.orm.RecordValue;
+import com.cronyapps.odoo.core.orm.services.AppSyncService;
 import com.cronyapps.odoo.core.orm.sync.utils.OdooRecordUtils;
+import com.cronyapps.odoo.core.orm.sync.utils.OdooSyncHelper;
+import com.cronyapps.odoo.core.orm.utils.DataModelUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdooErrorListener {
+public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdooErrorListener,
+        OdooSyncHelper {
 
     private static final String TAG = DataSyncAdapter.class.getSimpleName();
     private BaseDataModel model;
+    private Class<? extends BaseDataModel> modelClass;
     private OdooApiClient odooClient;
     private OdooRecordUtils recordUtils;
     private ModelsRecordState recordState;
     private boolean onlySync = false;
     private int offset = 0;
     private int limit = 80;
-
+    private ODomain customDomain = null;
+    private AppSyncService syncService;
 
     public DataSyncAdapter(Context context) {
         super(context, true);
+    }
+
+    public DataSyncAdapter(Context context, AppSyncService service) {
+        super(context, true);
+        syncService = service;
     }
 
     @Override
@@ -51,8 +63,21 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
                               ContentProviderClient provider, SyncResult syncResult) {
         Log.v(TAG, "*****************************************************");
         Log.v(TAG, "Performing sync for " + account.name);
+        OdooUser user = OdooAccount.getInstance(getContext()).getAccount(account.name);
+        if (model == null && modelClass != null) {
+            model = BaseApp.getModel(getContext(), DataModelUtils.getModelName(modelClass),
+                    user);
+        }
+        if (model == null) {
+            Log.e(TAG, "Unable to find model.");
+            return;
+        }
         Log.v(TAG, "Model: " + model.getModelName());
-        model.setUser(OdooAccount.getInstance(getContext()).getAccount(account.name));
+        model.setUser(user);
+        if (syncService != null) {
+            syncService.onSyncStart();
+            syncService.onPerformSync(this, extras, user);
+        }
         recordState = (ModelsRecordState) model.getModel(ModelsRecordState.class);
         odooClient = new OdooApiClient.Builder(getContext())
                 .setUser(model.getOdooUser())
@@ -64,11 +89,19 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
         Log.v(TAG, "Sync finished for " + model.getModelName() + " with "
                 + syncResult.stats.numEntries + " record(s)");
         model.syncFinished(syncResult);
+        if (syncService != null) {
+            syncService.onSyncFinished(syncResult);
+            syncService.stopSelf();
+        }
     }
 
     public DataSyncAdapter onlySync() {
         onlySync = true;
         return this;
+    }
+
+    public void setModelClass(Class<? extends BaseDataModel> cls) {
+        modelClass = cls;
     }
 
     public void setModel(BaseDataModel model) {
@@ -91,6 +124,9 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
             if (lastSyncDate != null && !lastSyncDate.equals("false")) {
                 domain.add("write_date", ">", lastSyncDate);
             }
+        }
+        if (customDomain != null) {
+            domain.append(customDomain);
         }
         OdooFields fields = new OdooFields(model.getSyncableFields());
         odooClient.searchRead(model.getModelName(), fields, domain, offset, limit, "create_date DESC",
@@ -258,6 +294,8 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
                 });
             } while (cr.moveToNext());
         }
+        if (cr.getCount() > 0)
+            Log.v(TAG, cr.getCount() + " record(s) created on server for model (" + model.getModelName() + ")");
     }
 
     private List<Integer> getLocalDeleteIds(BaseDataModel model) {
@@ -274,5 +312,16 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
             }
         });
         return server_ids;
+    }
+
+    // OdooSyncHelper implementation
+    @Override
+    public void setDomain(ODomain domain) {
+        if (domain != null) customDomain = domain;
+    }
+
+    @Override
+    public void setLimitDataPerRequest(int limit) {
+        if (limit != -1) this.limit = limit;
     }
 }

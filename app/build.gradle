@@ -5,8 +5,9 @@ android {
     buildToolsVersion "25.0.0"
     defaultConfig {
         useLibrary 'org.apache.http.legacy'
-        applicationId "com.cronyapps.odoo"
         minSdkVersion 15
+        // FIXME: Use authority prefix same as applicationId in strings.xml
+        applicationId "com.cronyapps.odoo"
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -21,8 +22,8 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:25.0.1'
-    compile 'com.android.support:design:25.0.1'
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.android.support:design:25.1.0'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.google.code.gson:gson:2.6.2'
 }

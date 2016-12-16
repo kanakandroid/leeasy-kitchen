@@ -49,7 +49,7 @@ import java.util.List;
 
 public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements Iterable<ModelType> {
     private static final String TAG = BaseDataModel.class.getCanonicalName();
-    public static final String BASE_AUTHORITY = BuildConfig.APPLICATION_ID + ".core.provider";
+    private static final String BASE_AUTHORITY = BuildConfig.APPLICATION_ID + ".core.provider";
     public static final String ROW_ID = "_id";
     public static final int INVALID_ROW_ID = -1;
 
@@ -155,8 +155,12 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         return (ModelType) this;
     }
 
+    public String authority() {
+        return BASE_AUTHORITY;
+    }
+
     public Uri getUri() {
-        return BaseModelProvider.buildURI(getModelName(), getOdooUser().getAccountName());
+        return BaseModelProvider.buildURI(authority(), getModelName(), getOdooUser().getAccountName());
     }
     /* CRUD */
 
