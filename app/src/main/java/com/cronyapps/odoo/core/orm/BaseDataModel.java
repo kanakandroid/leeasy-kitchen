@@ -96,7 +96,7 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
             field.setAccessible(true);
             FieldType columnType = fieldToColumn(field);
             if (columnType != null)
-                columns.put(field.getName(), columnType);
+                columns.put(columnType.getName(), columnType);
         }
         return columns;
     }
