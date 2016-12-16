@@ -2,10 +2,10 @@ package com.cronyapps.odoo.core.orm.helper;
 
 import android.content.Context;
 
-import com.cronyapps.odoo.BuildConfig;
+import com.cronyapps.odoo.BaseApp;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
-import com.cronyapps.odoo.core.orm.annotation.DataModel;
 import com.cronyapps.odoo.core.orm.annotation.DataModelSetup;
+import com.cronyapps.odoo.core.orm.utils.DataModelUtils;
 
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -22,17 +22,9 @@ public class ModelRegistryUtils {
             DexFile dexFile = new DexFile(context.getPackageCodePath());
             for (Enumeration<String> item = dexFile.entries(); item.hasMoreElements(); ) {
                 String element = item.nextElement();
-                if (element.startsWith(BuildConfig.APPLICATION_ID)) {
+                if (element.startsWith(BaseApp.class.getPackage().getName())) {
                     Class<? extends BaseDataModel> cls = (Class<? extends BaseDataModel>) Class.forName(element);
-                    String modelName = null;
-                    DataModel model = cls.getAnnotation(DataModel.class);
-                    if (model != null) {
-                        modelName = model.value();
-                    }
-                    DataModel.Local modelLocal = cls.getAnnotation(DataModel.Local.class);
-                    if (modelName == null && modelLocal != null) {
-                        modelName = modelLocal.value();
-                    }
+                    String modelName = DataModelUtils.getModelName(cls);
                     if (modelName != null) {
                         this.models.put(modelName, cls);
                         DataModelSetup setup = cls.getAnnotation(DataModelSetup.class);
