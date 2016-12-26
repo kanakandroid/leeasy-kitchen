@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.cronyapps.odoo">
+
+    <!--Internet-->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--File storage-->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- Account permissions -->
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+
+    <!--Sync permissions-->
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_SYNC_STATS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+
+    <application
+        android:name=".BaseApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".SplashScreen">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".OdooLogin" />
+
+        <!--Device account service-->
+        <service
+            android:name=".core.auth.AuthenticatorService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
+        </service>
+
+        <!-- Base Provider (Commonly used by each of the model) -->
+        <provider
+            android:name=".core.orm.provider.BaseModelProvider"
+            android:authorities="${applicationId}.core.provider"
+            android:exported="false"
+            android:multiprocess="true" />
+
+        <!--Setup activity and service-->
+        <activity android:name=".base.SetupActivity" />
+        <service
+            android:name=".base.service.SetupIntentService"
+            android:exported="false" />
+        <activity android:name=".MainActivity" />
+
+        <!--Partner sync service-->
+        <provider
+            android:name=".base.addons.res.service.PartnerContentProvider"
+            android:authorities="${applicationId}.sync.res_partner"
+            android:label="@string/sync_label_partners"
+            android:multiprocess="true" />
+
+        <service
+            android:name=".base.addons.res.service.PartnerSyncService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/partner_sync_adapter" />
+        </service>
+
+
+    </application>
+
+</manifest>
