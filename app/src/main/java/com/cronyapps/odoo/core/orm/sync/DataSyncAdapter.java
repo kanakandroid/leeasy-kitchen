@@ -47,6 +47,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
     private int offset = 0;
     private int limit = 80;
     private ODomain customDomain = null;
+    private OdooFields customFields = null;
     private AppSyncService syncService;
 
     public DataSyncAdapter(Context context) {
@@ -129,6 +130,11 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
             domain.append(customDomain);
         }
         OdooFields fields = new OdooFields(model.getSyncableFields());
+        if (customFields != null) {
+            fields = customFields;
+            fields.addAll("write_date");
+        }
+        model.requestingData(fields, domain, syncResult == null);
         odooClient.searchRead(model.getModelName(), fields, domain, offset, limit, "create_date DESC",
                 new IOdooResponse() {
                     @Override
@@ -312,6 +318,11 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
             }
         });
         return server_ids;
+    }
+
+    @Override
+    public void setFields(OdooFields fields) {
+        if (fields != null) customFields = fields;
     }
 
     // OdooSyncHelper implementation

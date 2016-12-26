@@ -62,25 +62,6 @@
             android:exported="false" />
         <activity android:name=".MainActivity" />
 
-        <!--Partner sync service-->
-        <provider
-            android:name=".base.addons.res.service.PartnerContentProvider"
-            android:authorities="${applicationId}.sync.res_partner"
-            android:label="@string/sync_label_partners"
-            android:multiprocess="true" />
-
-        <service
-            android:name=".base.addons.res.service.PartnerSyncService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.content.SyncAdapter" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.content.SyncAdapter"
-                android:resource="@xml/partner_sync_adapter" />
-        </service>
-
 
     </application>
 

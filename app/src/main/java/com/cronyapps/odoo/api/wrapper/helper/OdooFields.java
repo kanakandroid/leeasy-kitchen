@@ -42,4 +42,9 @@ public class OdooFields {
         }
         return jFields;
     }
+
+    public void resetFields(String... fields) {
+        jFields = new OdooParams();
+        addAll(fields);
+    }
 }

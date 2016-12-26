@@ -1,10 +1,10 @@
 <resources>
     <!--Base strings-->
-    <string name="app_name">Crony</string>
+    <string name="app_name">Kitchen</string>
     <!-- TODO: prefix ???.???.auth must be same as applicationId-->
-    <string name="base_auth_type">com.cronyapps.odoo.mobile.auth</string>
+    <string name="base_auth_type">com.leeasysolutions.kitchen.mobile.auth</string>
     <!-- TODO: prefix ???.???.core.provider must be same as applicationId-->
-    <string name="app_base_sync_authority">com.cronyapps.odoo.core.provider</string>
+    <string name="app_base_sync_authority">com.leeasysolutions.kitchen.core.provider</string>
 
     <!--API Errors-->
     <string name="error_host_required">Server URL required</string>
@@ -32,9 +32,5 @@
     <string name="label_lets_explore">Let\'s Explore</string>
     <string name="msg_no_access_to_app">You don\'t have access to use app feature.</string>
     <string name="label_retry">Retry</string>
-
-    <!--Authorities-->
-    <string name="app_customer_authority">com.cronyapps.odoo.sync.res_partner</string>
-    <string name="sync_label_partners">Sync Partners</string>
 
 </resources>

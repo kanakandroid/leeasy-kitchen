@@ -15,6 +15,7 @@ import android.util.Log;
 import com.cronyapps.odoo.BaseApp;
 import com.cronyapps.odoo.BuildConfig;
 import com.cronyapps.odoo.api.wrapper.helper.ODomain;
+import com.cronyapps.odoo.api.wrapper.helper.OdooFields;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.base.addons.internal.models.ModelsRecordState;
 import com.cronyapps.odoo.base.addons.ir.models.IrModel;
@@ -105,7 +106,7 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         HashMap<String, FieldType<?, ?>> columns = getColumns();
         List<FieldType<?, ?>> relationColumns = new ArrayList<>();
         for (FieldType col : columns.values()) {
-            if (col.isRelationType()) {
+            if (col.isRelationType() && !col.isLocalColumn()) {
                 relationColumns.add(col);
             }
         }
@@ -557,6 +558,10 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
 
     }
 
+    public void requestingData(OdooFields fields, ODomain domain, boolean relationRequest) {
+
+    }
+
     @CallSuper
     public void syncFinished(SyncResult result) {
         IrModel ir_model = new IrModel(getContext(), getOdooUser());
@@ -577,6 +582,11 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         DataSyncAdapter adapter = new DataSyncAdapter(getContext());
         adapter.setModel(this);
         return adapter;
+    }
+
+
+    public void syncData() {
+        getSyncAdapter().onPerformSync(getOdooUser().account, null, null, null, new SyncResult());
     }
 
     public String[] getProjection() {
@@ -622,4 +632,5 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
             e.printStackTrace();
         }
     }
+
 }
