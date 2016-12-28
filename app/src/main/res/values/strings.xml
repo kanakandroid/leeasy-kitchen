@@ -32,5 +32,9 @@
     <string name="label_lets_explore">Let\'s Explore</string>
     <string name="msg_no_access_to_app">You don\'t have access to use app feature.</string>
     <string name="label_retry">Retry</string>
+    <string name="title_orders">Orders</string>
+    <string name="title_refresh">Refresh</string>
+    <string name="title_refreshing">Refreshing…</string>
+    <string name="title_kitchen_orders">Kitchen Orders</string>
 
 </resources>

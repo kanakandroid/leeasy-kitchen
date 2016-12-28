@@ -20,8 +20,8 @@ public class FieldManyToOne extends FieldType<FieldManyToOne, Integer> {
         return "INTEGER";
     }
 
-    // todo, implement readRelationData
     public <RelModel> RelModel read() {
-        return null;
+        BaseDataModel model = getBaseModel().getModel(getRelationModel());
+        return (RelModel) model.browse(getValue());
     }
 }

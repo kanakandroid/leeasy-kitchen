@@ -20,7 +20,7 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
     public FieldChar reference = new FieldChar("reference").size(200);
     public FieldManyToOne table_no = new FieldManyToOne("Table", RestaurantTable.class);
     public FieldManyToOne carrier_id = new FieldManyToOne("Delivery Method", DeliveryCarrier.class);
-    public FieldFloat product_qty = new FieldFloat("Product Quantity").defaultValue(0d);
+    public FieldFloat product_qty = new FieldFloat("Product Quantity").defaultValue(0F);
     public FieldManyToOne partner_id = new FieldManyToOne("Customer", ResPartner.class);
 
     public FieldSelection state = new FieldSelection("States")

@@ -22,4 +22,8 @@ public class FieldSelection extends FieldType<FieldSelection, String> {
     public String getDisplayValue() {
         return selectionMap.get(getValue());
     }
+
+    public String get(String key) {
+        return selectionMap.get(key);
+    }
 }

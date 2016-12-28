@@ -8,4 +8,8 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="AppBar.Dark" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <!--Customize theme -->
+    </style>
+
 </resources>

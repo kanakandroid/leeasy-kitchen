@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorPrimaryDark"
+    android:paddingRight="@dimen/dim_8"
+    android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+    android:theme="@style/AppBar.Dark"
+    app:layout_scrollFlags="scroll|enterAlways"
+    app:titleMarginStart="@dimen/dim_16">
+
+</android.support.v7.widget.Toolbar>
