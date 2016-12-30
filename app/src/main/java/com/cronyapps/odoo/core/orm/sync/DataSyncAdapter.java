@@ -44,6 +44,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
     private OdooRecordUtils recordUtils;
     private ModelsRecordState recordState;
     private boolean onlySync = false;
+    private boolean noWriteDateCheck = false;
     private int offset = 0;
     private int limit = 80;
     private ODomain customDomain = null;
@@ -85,7 +86,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
                 .synchronizedRequests()
                 .build();
         odooClient.setErrorListener(this);
-        synchronizeData(model, null, syncResult);
+        synchronizeData(extras, model, null, syncResult);
 
         Log.v(TAG, "Sync finished for " + model.getModelName() + " with "
                 + syncResult.stats.numEntries + " record(s)");
@@ -94,6 +95,11 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
             syncService.onSyncFinished(syncResult);
             syncService.stopSelf();
         }
+    }
+
+    public DataSyncAdapter noWriteDateCheck() {
+        noWriteDateCheck = true;
+        return this;
     }
 
     public DataSyncAdapter onlySync() {
@@ -109,7 +115,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
         this.model = model;
     }
 
-    private void synchronizeData(final BaseDataModel model, final ODomain filterDomain,
+    private void synchronizeData(final Bundle extra, final BaseDataModel model, final ODomain filterDomain,
                                  final SyncResult syncResult) {
         recordUtils = new OdooRecordUtils(model);
         model.syncStarted();
@@ -122,7 +128,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
             if (!serverIds.isEmpty()) domain.add("id", "not in", serverIds);
         } else {
             String lastSyncDate = model.getLastSyncDate();
-            if (lastSyncDate != null && !lastSyncDate.equals("false")) {
+            if (lastSyncDate != null && !lastSyncDate.equals("false") && !noWriteDateCheck) {
                 domain.add("write_date", ">", lastSyncDate);
             }
         }
@@ -134,22 +140,30 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
             fields = customFields;
             fields.addAll("write_date");
         }
-        model.requestingData(fields, domain, syncResult == null);
+        model.requestingData(fields, domain, extra, syncResult == null);
+        Log.e(">>", domain.get() + "<<");
         odooClient.searchRead(model.getModelName(), fields, domain, offset, limit, "create_date DESC",
                 new IOdooResponse() {
                     @Override
                     public void onResult(OdooResult result) {
-                        processResult(model, result, filterDomain != null, syncResult);
+                        processResult(extra, model, result, filterDomain != null, syncResult);
+                    }
+
+                    @Override
+                    public boolean onError(OdooResult error) {
+                        Log.e(">>", error + " <<");
+                        return super.onError(error);
                     }
                 });
     }
 
     @Override
     public void onError(OdooError error) {
+        error.printStackTrace();
         Log.e(">>>", error.getMessage());
     }
 
-    private void processResult(@NonNull BaseDataModel model, OdooResult result, boolean ignoreRelationRecords,
+    private void processResult(Bundle extra, @NonNull BaseDataModel model, OdooResult result, boolean ignoreRelationRecords,
                                SyncResult syncResult) {
         int length = result.getInt("length");
         List<RecordValue> values = new ArrayList<>();
@@ -225,7 +239,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
         if (length != 0 && length != values.size() && length > limit) {
             offset = offset + limit;
             Log.d(TAG, "Requesting offset #" + offset + " for " + model.getModelName());
-            synchronizeData(model, null, syncResult);
+            synchronizeData(extra, model, null, syncResult);
         }
     }
 
@@ -234,7 +248,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
             BaseDataModel model = BaseApp.getModel(getContext(), key, baseModel.getOdooUser());
             ODomain domain = new ODomain();
             domain.add("id", "in", relationMap.get(key));
-            synchronizeData(model, domain, null);
+            synchronizeData(null, model, domain, null);
         }
     }
 

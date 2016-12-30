@@ -54,13 +54,17 @@ public class BaseModelProvider extends ContentProvider {
         return null;
     }
 
-    private void setMatcher(Uri uri, String modelName) {
-        String authority = (authority() != null) ? authority() : uri.getAuthority();
+    protected String createAuthority(Uri uri) {
+        return (authority() != null) ? authority() : uri.getAuthority();
+    }
+
+    protected void setMatcher(Uri uri, String modelName) {
+        String authority = createAuthority(uri);
         matcher.addURI(authority, modelName, COLLECTION);
         matcher.addURI(authority, modelName + "/#", SINGLE_ROW);
     }
 
-    private BaseDataModel getModel(Uri uri) {
+    protected BaseDataModel getModel(Uri uri) {
         String modelName = uri.getQueryParameter(KEY_MODEL);
         String userName = uri.getQueryParameter(KEY_USER);
         setMatcher(uri, modelName);

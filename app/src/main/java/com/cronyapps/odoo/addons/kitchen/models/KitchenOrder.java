@@ -1,10 +1,18 @@
 package com.cronyapps.odoo.addons.kitchen.models;
 
 import android.content.Context;
+import android.content.SyncResult;
+import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.database.MergeCursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.os.Bundle;
 
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.base.addons.res.models.ResPartner;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
+import com.cronyapps.odoo.core.orm.RecordValue;
 import com.cronyapps.odoo.core.orm.annotation.DataModel;
 import com.cronyapps.odoo.core.orm.type.FieldChar;
 import com.cronyapps.odoo.core.orm.type.FieldDateTime;
@@ -12,6 +20,11 @@ import com.cronyapps.odoo.core.orm.type.FieldFloat;
 import com.cronyapps.odoo.core.orm.type.FieldInteger;
 import com.cronyapps.odoo.core.orm.type.FieldManyToOne;
 import com.cronyapps.odoo.core.orm.type.FieldSelection;
+import com.cronyapps.odoo.core.orm.utils.CursorToRecord;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @DataModel("kitchen.order")
 public class KitchenOrder extends BaseDataModel<KitchenOrder> {
@@ -38,5 +51,53 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
 
     public KitchenOrder(Context context, OdooUser user) {
         super(context, user);
+    }
+
+    @Override
+    public String authority() {
+        return super.authority() + ".kitchen.orders";
+    }
+
+    public Uri getOrderUri() {
+        return Uri.withAppendedPath(getUri(), "order_uri");
+    }
+
+
+    public void syncOrders(Bundle extra) {
+        getSyncAdapter().
+                onPerformSync(getOdooUser().account, extra, null, null, new SyncResult());
+    }
+
+    public Cursor getOrders(String selection, String[] selectionArgs) {
+        SQLiteDatabase db = getReadableDatabase();
+        MatrixCursor cursor = new MatrixCursor(new String[]{"_id", "id", "display_name", "product_qty", "partner_id", "state", "is_group"});
+        Cursor cr = db.query(getTableName(), new String[]{"reference", "sum(product_qty) total_product_qty"}, selection, selectionArgs,
+                "reference", null, "create_date desc");
+        if (cr.moveToFirst()) {
+            do {
+                RecordValue value = CursorToRecord.cursorToValues(cr, false);
+                cursor.addRow(new Object[]{-1, -1, value.getString("reference"), value.get("total_product_qty"), -1, null, true});
+                List<String> args = new ArrayList<>();
+                if (selectionArgs != null)
+                    args.addAll(Arrays.asList(selectionArgs));
+                args.add(value.getString("reference"));
+                String where = selection != null ? "reference = ? and " + selection : "reference = ?";
+                Cursor data = db.query(getTableName(), null, where, args.toArray(new String[args.size()])
+                        , null, null, null);
+                if (data.moveToFirst()) {
+                    do {
+                        RecordValue dataValue = CursorToRecord.cursorToValues(data, false);
+                        cursor.addRow(new Object[]{
+                                dataValue.getInt("_id"),
+                                dataValue.getInt("id"),
+                                dataValue.getString("display_name"),
+                                dataValue.get("product_qty"),
+                                dataValue.getInt("partner_id"),
+                                dataValue.getString("state"), false});
+                    } while (data.moveToNext());
+                }
+            } while (cr.moveToNext());
+        }
+        return new MergeCursor(new Cursor[]{cursor});
     }
 }

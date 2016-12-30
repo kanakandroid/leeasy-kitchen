@@ -8,12 +8,14 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.cronyapps.odoo.BaseApp;
 import com.cronyapps.odoo.BuildConfig;
+import com.cronyapps.odoo.api.OdooApiClient;
 import com.cronyapps.odoo.api.wrapper.helper.ODomain;
 import com.cronyapps.odoo.api.wrapper.helper.OdooFields;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
@@ -64,7 +66,8 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
     public FieldInteger _id = new FieldInteger("Local ID").setPrimaryKey().withAutoIncrement().setLocalColumn();
     public FieldInteger id = new FieldInteger("Server ID").required().defaultValue(0);
     FieldDateTime _write_date = new FieldDateTime("Local Write DAte").defaultValue("false").setLocalColumn();
-    FieldDateTime write_date = new FieldDateTime("Write DAte").required().defaultValue("false");
+    FieldDateTime write_date = new FieldDateTime("Write Date").required().defaultValue("false");
+    FieldDateTime create_date = new FieldDateTime("Create Date").required().defaultValue("false");
 
     public BaseDataModel(Context context, OdooUser user) {
         super(context, user != null ? user : OdooUser.get(context));
@@ -558,7 +561,7 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
 
     }
 
-    public void requestingData(OdooFields fields, ODomain domain, boolean relationRequest) {
+    public void requestingData(OdooFields fields, ODomain domain, Bundle extra, boolean relationRequest) {
 
     }
 
@@ -585,8 +588,8 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
     }
 
 
-    public void syncData() {
-        getSyncAdapter().onPerformSync(getOdooUser().account, null, null, null, new SyncResult());
+    public void syncData(Bundle extra) {
+        getSyncAdapter().onPerformSync(getOdooUser().account, extra, null, null, new SyncResult());
     }
 
     public String[] getProjection() {
@@ -606,6 +609,9 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         return columnNames.toArray(new String[columnNames.size()]);
     }
 
+    public OdooApiClient getAPIClient() {
+        return new OdooApiClient.Builder(mContext).setUser(getOdooUser()).build();
+    }
 
     public void exportDB() {
         FileChannel source;

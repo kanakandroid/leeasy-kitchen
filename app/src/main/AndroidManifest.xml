@@ -62,6 +62,12 @@
             android:exported="false" />
         <activity android:name=".MainActivity" />
 
+        <!--Kitchen order-->
+        <provider
+            android:name=".addons.kitchen.models.KitchenOrderProvider"
+            android:authorities="${applicationId}.core.provider.kitchen.orders"
+            android:exported="false"
+            android:multiprocess="true" />
 
     </application>
 

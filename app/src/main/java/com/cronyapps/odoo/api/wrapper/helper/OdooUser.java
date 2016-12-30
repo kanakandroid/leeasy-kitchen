@@ -11,6 +11,8 @@ import com.cronyapps.odoo.base.addons.res.models.ResUsers;
 import com.cronyapps.odoo.config.AppConfig;
 import com.cronyapps.odoo.core.auth.OdooAccount;
 
+import org.json.JSONObject;
+
 import java.util.Locale;
 
 public class OdooUser implements Parcelable {
@@ -157,5 +159,17 @@ public class OdooUser implements Parcelable {
                 return group;
         }
         return null;
+    }
+
+    public JSONObject getAsContext() {
+        JSONObject data = new JSONObject();
+        try {
+            data.put("lang", language);
+            data.put("tz", time_zone);
+            data.put("uid", uid);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return data;
     }
 }

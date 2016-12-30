@@ -36,5 +36,11 @@
     <string name="title_refresh">Refresh</string>
     <string name="title_refreshing">Refreshing…</string>
     <string name="title_kitchen_orders">Kitchen Orders</string>
+    <string name="label_qty">QTY</string>
+    <string name="title_ready_to_deliver">Ready to Deliver</string>
+    <string name="label_process">Process</string>
+    <string name="title_process_order">Process Order</string>
+    <string name="msg_please_wait">Please wait...</string>
+    <string name="label_no_orders">No orders</string>
 
 </resources>

@@ -396,6 +396,22 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
         }
     }
 
+    public void callMethod(@NonNull String model, String method, OArguments arguments,
+                           IOdooResponse response) {
+        String url = getHost() + "/web/dataset/call_kw";
+        try {
+            OdooParams params = new OdooParams();
+            params.add("model", model);
+            params.add("method", method);
+            params.add("args", arguments.getArray());
+            params.add("kwargs", new JSONObject());
+            params.add("context", new JSONObject());
+            newJSONRequest(url, params, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Call controller of odoo with request type
      *
