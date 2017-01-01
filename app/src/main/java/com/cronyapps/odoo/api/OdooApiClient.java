@@ -2,7 +2,6 @@ package com.cronyapps.odoo.api;
 
 import android.content.Context;
 
-import com.android.volley.DefaultRetryPolicy;
 import com.cronyapps.odoo.api.wrapper.OdooWrapper;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooConnectionListener;
@@ -13,8 +12,8 @@ import com.cronyapps.odoo.api.wrapper.impl.IOdooErrorListener;
  */
 public abstract class OdooApiClient extends OdooWrapper<OdooApiClient> {
     public static final String TAG = OdooApiClient.class.getCanonicalName();
-    public static Integer REQUEST_TIMEOUT_MS = DefaultRetryPolicy.DEFAULT_TIMEOUT_MS;
-    public static Integer DEFAULT_MAX_RETRIES = DefaultRetryPolicy.DEFAULT_MAX_RETRIES;
+    public static Integer REQUEST_TIMEOUT_MS = 30000;// DefaultRetryPolicy.DEFAULT_TIMEOUT_MS;
+    public static Integer DEFAULT_MAX_RETRIES =2;// DefaultRetryPolicy.DEFAULT_MAX_RETRIES;
 
     public OdooApiClient() {
     }

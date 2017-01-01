@@ -53,6 +53,12 @@ public class RecordValue implements Serializable {
         return Integer.parseInt(_values.get(key).toString());
     }
 
+    public Float getFloat(String key) {
+        if (_values.containsKey(key))
+            return (Float) _values.get(key);
+        return null;
+    }
+
     public String getString(String key) {
         return _values.get(key).toString();
     }
@@ -175,4 +181,5 @@ public class RecordValue implements Serializable {
         }
         return values;
     }
+
 }

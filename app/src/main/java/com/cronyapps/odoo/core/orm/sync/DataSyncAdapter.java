@@ -29,6 +29,7 @@ import com.cronyapps.odoo.core.orm.services.AppSyncService;
 import com.cronyapps.odoo.core.orm.sync.utils.OdooRecordUtils;
 import com.cronyapps.odoo.core.orm.sync.utils.OdooSyncHelper;
 import com.cronyapps.odoo.core.orm.utils.DataModelUtils;
+import com.cronyapps.odoo.core.utils.NetworkUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,6 +64,10 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority,
                               ContentProviderClient provider, SyncResult syncResult) {
+        if (!NetworkUtils.isConnected(getContext())) {
+            Log.w(TAG, "Not connected to network. Skipping perform sync");
+            return;
+        }
         Log.v(TAG, "*****************************************************");
         Log.v(TAG, "Performing sync for " + account.name);
         OdooUser user = OdooAccount.getInstance(getContext()).getAccount(account.name);
@@ -141,18 +146,11 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
             fields.addAll("write_date");
         }
         model.requestingData(fields, domain, extra, syncResult == null);
-        Log.e(">>", domain.get() + "<<");
         odooClient.searchRead(model.getModelName(), fields, domain, offset, limit, "create_date DESC",
                 new IOdooResponse() {
                     @Override
                     public void onResult(OdooResult result) {
                         processResult(extra, model, result, filterDomain != null, syncResult);
-                    }
-
-                    @Override
-                    public boolean onError(OdooResult error) {
-                        Log.e(">>", error + " <<");
-                        return super.onError(error);
                     }
                 });
     }

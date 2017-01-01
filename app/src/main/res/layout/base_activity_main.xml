@@ -23,7 +23,7 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:src="@drawable/chef"
-            android:tint="#414141" />
+            android:tint="#99ffffff" />
 
         <TextView
             android:layout_width="match_parent"
@@ -31,7 +31,7 @@
             android:layout_marginTop="@dimen/dim_16"
             android:gravity="center"
             android:text="@string/label_no_orders"
-            android:textColor="#414141"
+            android:textColor="#99ffffff"
             android:textSize="30sp" />
     </LinearLayout>
 

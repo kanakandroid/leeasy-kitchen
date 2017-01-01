@@ -132,6 +132,10 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         return null;
     }
 
+    public String getDefaultNameColumn() {
+        return "name";
+    }
+
     public FieldType getColumn(String column) {
         return getColumns().get(column);
     }
@@ -500,6 +504,18 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         }
         recordCursor.close();
         return server_id;
+    }
+
+    public String getName(Integer row_id) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cr = db.query(getTableName(), new String[]{getDefaultNameColumn()},
+                ROW_ID + " = ?", new String[]{row_id + ""}, null, null, null);
+        String name = null;
+        if (cr.moveToFirst())
+            name = cr.getString(0);
+        cr.close();
+        db.close();
+        return name;
     }
 
     /**

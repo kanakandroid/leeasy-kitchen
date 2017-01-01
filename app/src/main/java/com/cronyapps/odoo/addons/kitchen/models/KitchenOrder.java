@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.cronyapps.odoo.api.wrapper.helper.ODomain;
+import com.cronyapps.odoo.api.wrapper.helper.OdooFields;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.base.addons.res.models.ResPartner;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
@@ -64,19 +66,24 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
 
 
     public void syncOrders(Bundle extra) {
-        getSyncAdapter().
+        getSyncAdapter().noWriteDateCheck().
                 onPerformSync(getOdooUser().account, extra, null, null, new SyncResult());
+    }
+
+    @Override
+    public void requestingData(OdooFields fields, ODomain domain, Bundle extra, boolean relationRequest) {
+
     }
 
     public Cursor getOrders(String selection, String[] selectionArgs) {
         SQLiteDatabase db = getReadableDatabase();
-        MatrixCursor cursor = new MatrixCursor(new String[]{"_id", "id", "display_name", "product_qty", "partner_id", "state", "is_group"});
+        MatrixCursor cursor = new MatrixCursor(new String[]{"_id", "id", "display_name", "product_qty", "partner_id", "state", "is_group", "reference", "product_id","partner_id"});
         Cursor cr = db.query(getTableName(), new String[]{"reference", "sum(product_qty) total_product_qty"}, selection, selectionArgs,
                 "reference", null, "create_date desc");
         if (cr.moveToFirst()) {
             do {
                 RecordValue value = CursorToRecord.cursorToValues(cr, false);
-                cursor.addRow(new Object[]{-1, -1, value.getString("reference"), value.get("total_product_qty"), -1, null, true});
+                cursor.addRow(new Object[]{-1, -1, value.getString("reference"), value.get("total_product_qty"), -1, null, true, "false", -1,-1});
                 List<String> args = new ArrayList<>();
                 if (selectionArgs != null)
                     args.addAll(Arrays.asList(selectionArgs));
@@ -93,7 +100,12 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
                                 dataValue.getString("display_name"),
                                 dataValue.get("product_qty"),
                                 dataValue.getInt("partner_id"),
-                                dataValue.getString("state"), false});
+                                dataValue.getString("state"),
+                                false,
+                                dataValue.getString("reference"),
+                                dataValue.getInt("product_id"),
+                                dataValue.getInt("partner_id")
+                        });
                     } while (data.moveToNext());
                 }
             } while (cr.moveToNext());

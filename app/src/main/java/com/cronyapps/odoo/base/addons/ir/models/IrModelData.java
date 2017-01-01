@@ -17,7 +17,7 @@ import java.util.List;
 @DataModel("ir.model.data")
 public class IrModelData extends BaseDataModel<IrModelData> {
 
-    FieldChar name = new FieldChar("Name").required().size(150);
+    public FieldChar name = new FieldChar("Name").required().size(150);
     FieldChar model = new FieldChar("Model").required().size(100);
     FieldInteger res_id = new FieldInteger("Resource ID");
     FieldChar module = new FieldChar("Module").size(100);
@@ -51,8 +51,6 @@ public class IrModelData extends BaseDataModel<IrModelData> {
         models.add(groups.getModelName());
         serverIds.addAll(groups.getServerIds());
 
-
-        // Passing models and server ids to domain
         domain.add("model", "in", models);
         domain.add("res_id", "in", serverIds);
 

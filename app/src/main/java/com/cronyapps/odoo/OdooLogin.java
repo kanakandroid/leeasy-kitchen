@@ -43,7 +43,7 @@ public class OdooLogin extends CronyActivity implements View.OnClickListener,
         findViewById(R.id.btn_login).setOnClickListener(this);
         odooAccount = OdooAccount.getInstance(this);
         if (BuildConfig.DEBUG) {
-            edtHost.setText("http://test.leeasyfood.com");
+            edtHost.setText("http://52.77.80.196:8080");
             edtUsername.setText("admin");
             edtPassword.setText("admin");
         }

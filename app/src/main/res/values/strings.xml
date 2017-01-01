@@ -38,9 +38,29 @@
     <string name="title_kitchen_orders">Kitchen Orders</string>
     <string name="label_qty">QTY</string>
     <string name="title_ready_to_deliver">Ready to Deliver</string>
-    <string name="label_process">Process</string>
     <string name="title_process_order">Process Order</string>
-    <string name="msg_please_wait">Please wait...</string>
+    <string name="msg_please_wait">Please wait…</string>
     <string name="label_no_orders">No orders</string>
+    <string name="title_confirm">Confirm</string>
+    <string name="label_reference">Reference</string>
+    <string name="label_product">Product</string>
+    <string name="label_customer">Customer</string>
+    <string name="label_quantity">Quantity</string>
+    <string name="label_order_on">Order On</string>
+    <string name="label_refresh_data">Refresh data</string>
+    <string name="toast_updating_data">Updating data</string>
+    <string name="toast_data_updated">Data updated</string>
 
+    <string-array name="nav_spinner_items_manager">
+        <item>All Orders</item>
+        <item>Owner Orders</item>
+        <item>Kitchen Orders</item>
+        <!--<item>Waiter Orders</item>-->
+    </string-array>
+    <string-array name="nav_spinner_items_user">
+        <item>Kitchen Orders</item>
+    </string-array>
+    <string-array name="nav_spinner_items_waiter">
+        <item>Waiter Orders</item>
+    </string-array>
 </resources>

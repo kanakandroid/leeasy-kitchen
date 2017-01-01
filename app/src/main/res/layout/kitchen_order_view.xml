@@ -39,6 +39,7 @@
         android:id="@+id/detailView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:orientation="horizontal">
 
         <View
@@ -71,9 +72,31 @@
 
         </LinearLayout>
 
+        <ImageView
+            android:id="@+id/orderInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="#5F7C8A"
+            android:paddingLeft="@dimen/dim_16"
+            android:paddingRight="@dimen/dim_16"
+            android:src="@drawable/ic_info_outline"
+            android:tint="#fff" />
+
+        <ImageView
+            android:id="@+id/actionReadyToDeliver"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginRight="@dimen/dim_4"
+            android:background="#CCDB38"
+            android:paddingLeft="@dimen/dim_16"
+            android:paddingRight="@dimen/dim_16"
+            android:src="@drawable/ic_check_black"
+            android:tint="#fff" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:paddingLeft="@dimen/dim_16"
             android:gravity="center"
             android:orientation="vertical"
             android:paddingRight="@dimen/dim_16">

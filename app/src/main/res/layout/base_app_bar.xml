@@ -11,4 +11,10 @@
     app:layout_scrollFlags="scroll|enterAlways"
     app:titleMarginStart="@dimen/dim_16">
 
+    <Spinner
+        android:id="@+id/spinner_nav"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dim_16" />
+
 </android.support.v7.widget.Toolbar>
