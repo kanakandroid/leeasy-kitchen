@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,13 +25,16 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.cronyapps.odoo.addons.kitchen.models.KitchenOrder;
 import com.cronyapps.odoo.addons.kitchen.models.ProductProduct;
+import com.cronyapps.odoo.addons.kitchen.models.RestaurantTable;
 import com.cronyapps.odoo.api.OdooApiClient;
 import com.cronyapps.odoo.api.wrapper.handler.gson.OdooResult;
 import com.cronyapps.odoo.api.wrapper.helper.OArguments;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooResponse;
+import com.cronyapps.odoo.api.wrapper.utils.JSONUtils;
 import com.cronyapps.odoo.base.addons.res.models.ResPartner;
 import com.cronyapps.odoo.base.service.SetupIntentService;
 import com.cronyapps.odoo.config.AppConfig;
@@ -41,8 +45,8 @@ import com.cronyapps.odoo.core.utils.OAppBarUtils;
 import com.cronyapps.odoo.helper.OCursorAdapter;
 import com.cronyapps.odoo.helper.utils.CBind;
 
-import org.json.JSONArray;
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends CronyActivity implements
@@ -50,8 +54,10 @@ public class MainActivity extends CronyActivity implements
         AdapterView.OnItemSelectedListener {
 
     private KitchenOrder orders;
+    private RestaurantTable restaurantTable;
     private OCursorAdapter cursorAdapter;
     private Spinner spinnerNav;
+    private boolean updatingOrder = false;
     private boolean isManager = false;
 
     @Override
@@ -60,6 +66,7 @@ public class MainActivity extends CronyActivity implements
         setContentView(R.layout.base_activity_main);
         OAppBarUtils.setAppBar(this, false);
         orders = new KitchenOrder(this, null);
+        restaurantTable = new RestaurantTable(this, null);
         isManager = isManager();
         init();
     }
@@ -108,6 +115,7 @@ public class MainActivity extends CronyActivity implements
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        Log.v("createLoader", "Getting kitchen orders...");
         String where = null;
         String[] args = {};
         switch (spinnerNav.getSelectedItemPosition()) {
@@ -125,7 +133,7 @@ public class MainActivity extends CronyActivity implements
                 where = "";
                 break;
         }
-        return new CursorLoader(this, orders.getOrderUri(), null, where, args, "state, id DESC");
+        return new CursorLoader(this, orders.getOrderUri(), null, where, args, null);
     }
 
     @Override
@@ -133,6 +141,7 @@ public class MainActivity extends CronyActivity implements
         if (cursor.getCount() <= 0) {
             findViewById(R.id.no_items).setVisibility(View.VISIBLE);
             findViewById(R.id.orderListView).setVisibility(View.GONE);
+            Toast.makeText(this, R.string.toast_getting_data_please_wait, Toast.LENGTH_SHORT).show();
             new GetOrders().execute();
         } else {
             findViewById(R.id.no_items).setVisibility(View.GONE);
@@ -150,6 +159,7 @@ public class MainActivity extends CronyActivity implements
     public void onViewBind(View view, Cursor cursor) {
         boolean isGroup = cursor.getString(cursor.getColumnIndex("is_group")).equals("true");
         CursorToRecord.bind(cursor, orders);
+        RecordValue value = CursorToRecord.cursorToValues(cursor, false);
         if (!isGroup) {
             view.findViewById(R.id.detailView).setVisibility(View.VISIBLE);
             view.findViewById(R.id.detailHeaderView).setVisibility(View.GONE);
@@ -178,33 +188,87 @@ public class MainActivity extends CronyActivity implements
                     break;
             }
             view.findViewById(R.id.lineColor).setBackgroundColor(color);
-            view.findViewById(R.id.orderInfo).setTag(CursorToRecord.cursorToValues(cursor, false));
-            view.findViewById(R.id.actionReadyToDeliver).setTag(CursorToRecord.cursorToValues(cursor, false));
-            view.findViewById(R.id.orderInfo).setOnClickListener(new View.OnClickListener() {
+            view.findViewById(R.id.orderInfo).setTag(value);
+            view.findViewById(R.id.actionDo).setTag(value);
+            View.OnClickListener clickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     RecordValue value = (RecordValue) view.getTag();
                     lineInfo(value);
                 }
-            });
-            view.findViewById(R.id.actionReadyToDeliver).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    RecordValue value = (RecordValue) view.getTag();
-                    switch (value.getString("state")) {
-                        case "accept":
-                            makeReady(value);
-                            break;
+            };
+            view.findViewById(R.id.orderInfo).setOnClickListener(clickListener);
+            view.findViewById(R.id.actionDo).setVisibility(View.GONE);
+            if (!value.getString("state").equals("deliver") &&
+                    !value.getString("state").equals("cancel")) {
+                view.findViewById(R.id.actionDo).setVisibility(View.VISIBLE);
+                view.findViewById(R.id.actionDo).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        RecordValue value = (RecordValue) view.getTag();
+                        switch (value.getString("state")) {
+                            case "draft":
+                                // to accept
+                                orderAction("accept_order", value, false);
+                                break;
+                            case "accept":
+                                // to ready
+                                orderAction("ready_order", value, false);
+                                break;
+                            case "ready":
+                                // to deliver
+                                orderAction("deliver_order", value, false);
+                                break;
+                        }
                     }
-                }
-            });
+                });
+            }
+            view.findViewById(R.id.actionCancel).setVisibility(View.GONE);
+            if (isManager && value.getString("state").equals("draft")) {
+                view.findViewById(R.id.actionCancel).setVisibility(View.VISIBLE);
+                view.findViewById(R.id.actionCancel).setTag(value);
+                view.findViewById(R.id.actionCancel).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        RecordValue value = (RecordValue) view.getTag();
+                        switch (value.getString("state")) {
+                            case "draft":
+                                // to cancel
+                                orderAction("cancel_order", value, false);
+                                break;
+                        }
+                    }
+                });
+            }
+
+            view.findViewById(R.id.tableContainer).setVisibility(View.GONE);
+            if (value.getInt("table_no") > 0) {
+                view.findViewById(R.id.tableContainer).setVisibility(View.VISIBLE);
+                CBind.setText(view.findViewById(R.id.lineTableNumber), ": " + restaurantTable.getName(value.getInt("table_no")));
+            }
+            view.findViewById(R.id.orderTypeContainer).setVisibility(View.GONE);
+            if (!value.getString("order_type").equals("false")) {
+                view.findViewById(R.id.orderTypeContainer).setVisibility(View.VISIBLE);
+                CBind.setText(view.findViewById(R.id.lineOrderType), ": " + orders.order_type.getDisplayValue());
+            }
 
         } else {
             view.findViewById(R.id.detailView).setVisibility(View.GONE);
             view.findViewById(R.id.detailHeaderView).setVisibility(View.VISIBLE);
             CBind.setText(view.findViewById(R.id.headerTitle), orders.display_name.getValue());
-            CBind.setText(view.findViewById(R.id.headerQTY),
-                    String.format(Locale.getDefault(), "%02d", orders.product_qty.getValue().intValue()));
+            view.findViewById(R.id.confirmAll).setVisibility(View.GONE);
+            if (isManager) {
+                view.findViewById(R.id.confirmAll).setVisibility(View.VISIBLE);
+                view.findViewById(R.id.confirmAll).setTag(value);
+                view.findViewById(R.id.confirmAll).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        RecordValue value = (RecordValue) view.getTag();
+                        orderAction("accept_all_order", value, true);
+                    }
+                });
+            }
+
         }
     }
 
@@ -228,14 +292,43 @@ public class MainActivity extends CronyActivity implements
         return super.onOptionsItemSelected(item);
     }
 
-    private void makeReady(final RecordValue value) {
+    private void orderAction(final String action_method, final RecordValue value, final boolean processAll) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.title_confirm);
-        builder.setMessage(getString(R.string.title_ready_to_deliver) + " " + value.getString("display_name"));
-        builder.setPositiveButton(R.string.title_ready_to_deliver, new DialogInterface.OnClickListener() {
+        int button_text = R.string.title_ready_to_deliver;
+        switch (action_method) {
+            case "accept_order":
+                button_text = R.string.title_accept_order;
+                break;
+            case "accept_all_order":
+                button_text = R.string.title_accept_all_orders;
+                break;
+            case "ready_order":
+                button_text = R.string.title_ready_to_deliver;
+                break;
+            case "deliver_order":
+                button_text = R.string.title_deliver_order;
+                break;
+            case "cancel_order":
+                button_text = R.string.title_cancel_order;
+                break;
+        }
+        builder.setMessage(getString(button_text) + " ⇒ " + (!processAll ? value.getString("reference") + " → " : "") +
+                value.getString("display_name"));
+        builder.setPositiveButton(button_text, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                new UpdateOrder().execute(value.getInt("id"));
+                if (!processAll)
+                    new UpdateOrder(action_method).execute(value.getInt("id"));
+                else {
+                    String reference = value.getString("reference");
+                    List<RecordValue> orderItems = orders.select(null, "reference = ?", reference);
+                    List<Integer> serverIds = new ArrayList<>();
+                    for (RecordValue rec : orderItems) {
+                        serverIds.add(rec.getInt("id"));
+                    }
+                    new UpdateOrder("accept_order").execute(serverIds.toArray(new Integer[serverIds.size()]));
+                }
             }
         });
         builder.setNegativeButton(android.R.string.cancel, null);
@@ -253,6 +346,16 @@ public class MainActivity extends CronyActivity implements
         ResPartner partner = new ResPartner(this, null);
         CBind.setText(view.findViewById(R.id.orderCustomer), partner.getName(value.getInt("partner_id")));
 
+        if (value.getInt("table_no") > -1) {
+            view.findViewById(R.id.orderTableContainer).setVisibility(View.VISIBLE);
+            RestaurantTable table = new RestaurantTable(this, null);
+            CBind.setText(view.findViewById(R.id.orderTable), table.getName(value.getInt("table_no")));
+        }
+        if (!value.getString("order_type").equals("false")) {
+            view.findViewById(R.id.orderTypeContainer).setVisibility(View.VISIBLE);
+            CBind.setText(view.findViewById(R.id.orderType), orders.order_type.get(value.getString("order_type")));
+        }
+
         builder.setView(view);
         builder.setPositiveButton(android.R.string.ok, null);
         builder.show();
@@ -261,6 +364,11 @@ public class MainActivity extends CronyActivity implements
     private class UpdateOrder extends AsyncTask<Integer, Void, Void> {
 
         private ProgressDialog dialog;
+        private String action_method;
+
+        public UpdateOrder(String action) {
+            action_method = action;
+        }
 
         @Override
         protected void onPreExecute() {
@@ -269,15 +377,17 @@ public class MainActivity extends CronyActivity implements
             dialog.setMessage(getString(R.string.msg_please_wait));
             dialog.setCancelable(false);
             dialog.show();
+            updatingOrder = true;
         }
 
         @Override
         protected Void doInBackground(Integer... ids) {
+            updatingOrder = true;
             OdooApiClient client = orders.getAPIClient().setSynchronizedRequest(true);
             OArguments arguments = new OArguments();
-            arguments.add(new JSONArray().put(ids[0]));
+            arguments.add(JSONUtils.arrayToJsonArray(ids));
             arguments.add(getUser().getAsContext());
-            client.callMethod(orders.getModelName(), "ready_order", arguments, new IOdooResponse() {
+            client.callMethod(orders.getModelName(), action_method, arguments, new IOdooResponse() {
                 @Override
                 public void onResult(OdooResult result) {
 
@@ -290,6 +400,7 @@ public class MainActivity extends CronyActivity implements
         @Override
         protected void onPostExecute(Void aVoid) {
             dialog.dismiss();
+            updatingOrder = false;
             getLoaderManager().restartLoader(0, null, MainActivity.this);
         }
     }
@@ -303,19 +414,23 @@ public class MainActivity extends CronyActivity implements
 
         @Override
         protected Void doInBackground(Void... voids) {
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (!updatingOrder) {
+                try {
+                    Thread.sleep(7000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                orders.syncOrders(null);
             }
-            orders.syncOrders(null);
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            getLoaderManager().restartLoader(0, null, MainActivity.this);
+            Log.v("Get Orders", "Reloading data...");
+            if (!updatingOrder)
+                getLoaderManager().restartLoader(0, null, MainActivity.this);
             requestOrderUpdate();
         }
     }

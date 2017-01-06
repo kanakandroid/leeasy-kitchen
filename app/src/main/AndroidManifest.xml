@@ -4,7 +4,7 @@
 
     <!--Internet-->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!--File storage-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -35,7 +35,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".OdooLogin" />
-
+        <activity android:name=".UserLoginActivity" />
         <!--Device account service-->
         <service
             android:name=".core.auth.AuthenticatorService"

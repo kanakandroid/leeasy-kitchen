@@ -50,6 +50,17 @@
     <string name="label_refresh_data">Refresh data</string>
     <string name="toast_updating_data">Updating data</string>
     <string name="toast_data_updated">Data updated</string>
+    <string name="label_session_expired">Session Expired !</string>
+    <string name="snack_something_gone_wrong">Something gone wrong !</string>
+    <string name="title_cancel_order">Cancel order</string>
+    <string name="title_accept_order">Accept order</string>
+    <string name="title_make_ready_order">Ready order</string>
+    <string name="title_deliver_order">Deliver order</string>
+    <string name="toast_getting_data_please_wait">Getting data please wait…</string>
+    <string name="label_confirm_all">Confirm all</string>
+    <string name="title_accept_all_orders">Accept all orders</string>
+    <string name="label_booked_table">Table Number</string>
+    <string name="label_order_type">Order Type</string>
 
     <string-array name="nav_spinner_items_manager">
         <item>All Orders</item>

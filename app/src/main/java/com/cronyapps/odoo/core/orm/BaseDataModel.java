@@ -581,11 +581,14 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
 
     }
 
-    @CallSuper
-    public void syncFinished(SyncResult result) {
+    public void setSyncState(String syncDateToSet) {
         IrModel ir_model = new IrModel(getContext(), getOdooUser());
         //Logging state for sync finished in ir.model
-        ir_model.setSyncDate(getModelName());
+        ir_model.setSyncDate(getModelName(), syncDateToSet);
+    }
+
+    @CallSuper
+    public void syncFinished(SyncResult result) {
     }
 
     public String getLastSyncDate() {

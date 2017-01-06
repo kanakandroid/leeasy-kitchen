@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/dim_16"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="#414141" />
+        android:textColor="@color/colorTextIcon" />
 
 
     <LinearLayout
@@ -46,13 +46,13 @@
                 android:textColor="@color/colorSecondaryText" />
 
             <TextView
-                android:textStyle="bold"
                 android:id="@+id/orderProduct"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/dim_16"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="#414141" />
+                android:textColor="@color/colorTextIcon"
+                android:textStyle="bold" />
 
         </LinearLayout>
 
@@ -73,12 +73,12 @@
 
             <TextView
                 android:id="@+id/orderProductQTY"
-                android:textStyle="bold"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/dim_16"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="#414141" />
+                android:textColor="@color/colorTextIcon"
+                android:textStyle="bold" />
 
         </LinearLayout>
     </LinearLayout>
@@ -98,6 +98,58 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/dim_16"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="#414141" />
+        android:textColor="@color/colorTextIcon" />
 
+
+    <LinearLayout
+        android:id="@+id/orderTableContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/dim_4"
+            android:text="@string/label_booked_table"
+            android:textAllCaps="true"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/colorSecondaryText" />
+
+        <TextView
+            android:id="@+id/orderTable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/dim_16"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@color/colorTextIcon" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/orderTypeContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/dim_4"
+            android:text="@string/label_order_type"
+            android:textAllCaps="true"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/colorSecondaryText" />
+
+        <TextView
+            android:id="@+id/orderType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/dim_16"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@color/colorTextIcon" />
+
+    </LinearLayout>
 </LinearLayout>

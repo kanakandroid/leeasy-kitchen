@@ -2,6 +2,7 @@ package com.cronyapps.odoo.api.wrapper;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -547,9 +548,13 @@ public abstract class OdooWrapper<T> implements Response.Listener<JSONObject>,
             }
             if (mOdooErrorListener != null) {
                 OdooResult errorResult = response.error;
+                Log.e(">>", errorResult+"<<");
                 OdooError error = new OdooError(errorResult.getString("message"), OdooError.Type.SERVER_ERROR,
                         null);
                 OdooResult data = errorResult.getMap("data");
+                if (data.getString("name").equals("openerp.http.SessionExpiredException")) {
+                    error.setErrorType(OdooError.Type.SESSION_EXPIRED);
+                }
                 error.setStackTrace(new StackTraceElement[]{new StackTraceElement(data.getString("name"),
                         data.getString("message"), data.getString("debug"), 0)});
                 mOdooErrorListener.onError(error);

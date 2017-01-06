@@ -4,10 +4,14 @@ import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -30,6 +34,7 @@ import com.cronyapps.odoo.core.orm.sync.utils.OdooRecordUtils;
 import com.cronyapps.odoo.core.orm.sync.utils.OdooSyncHelper;
 import com.cronyapps.odoo.core.orm.utils.DataModelUtils;
 import com.cronyapps.odoo.core.utils.NetworkUtils;
+import com.cronyapps.odoo.core.utils.ODateUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +44,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
         OdooSyncHelper {
 
     private static final String TAG = DataSyncAdapter.class.getSimpleName();
+    public static final String ACTION_SESSION_STATUS = "action_session_status";
     private BaseDataModel model;
     private Class<? extends BaseDataModel> modelClass;
     private OdooApiClient odooClient;
@@ -51,6 +57,7 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
     private ODomain customDomain = null;
     private OdooFields customFields = null;
     private AppSyncService syncService;
+    private SharedPreferences pref;
 
     public DataSyncAdapter(Context context) {
         super(context, true);
@@ -64,8 +71,14 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority,
                               ContentProviderClient provider, SyncResult syncResult) {
+        pref = PreferenceManager.getDefaultSharedPreferences(getContext());
         if (!NetworkUtils.isConnected(getContext())) {
             Log.w(TAG, "Not connected to network. Skipping perform sync");
+            return;
+        }
+        if (pref.getBoolean("session_expired", false) &&
+                pref.getString("session_expired_user", "").equals(account.name)) {
+            Log.e(TAG, "Session expired on server for user " + account.name + ". Skipping server request.");
             return;
         }
         Log.v(TAG, "*****************************************************");
@@ -91,8 +104,9 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
                 .synchronizedRequests()
                 .build();
         odooClient.setErrorListener(this);
+        String syncDateToSet = ODateUtils.getUTCDate();
         synchronizeData(extras, model, null, syncResult);
-
+        model.setSyncState(syncDateToSet);
         Log.v(TAG, "Sync finished for " + model.getModelName() + " with "
                 + syncResult.stats.numEntries + " record(s)");
         model.syncFinished(syncResult);
@@ -157,8 +171,22 @@ public class DataSyncAdapter extends AbstractThreadedSyncAdapter implements IOdo
 
     @Override
     public void onError(OdooError error) {
-        error.printStackTrace();
-        Log.e(">>>", error.getMessage());
+        switch (error.getErrorType()) {
+            case SESSION_EXPIRED:
+                String userName = model.getOdooUser().getAccountName();
+                pref.edit().putBoolean("session_expired", true).apply();
+                pref.edit().putString("session_expired_user", userName).apply();
+                Intent sessionExpired = new Intent(ACTION_SESSION_STATUS);
+                sessionExpired.setAction(ACTION_SESSION_STATUS);
+                sessionExpired.putExtra("session_status", "expired");
+                sessionExpired.putExtra("message", error.getMessage());
+                sessionExpired.putExtra("user", userName);
+                LocalBroadcastManager.getInstance(getContext())
+                        .sendBroadcast(sessionExpired);
+                break;
+            default:
+                Log.e(TAG, "ERROR : " + error.getMessage());
+        }
     }
 
     private void processResult(Bundle extra, @NonNull BaseDataModel model, OdooResult result, boolean ignoreRelationRecords,

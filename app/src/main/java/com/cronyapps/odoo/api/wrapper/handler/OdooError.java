@@ -5,7 +5,8 @@ import com.android.volley.NoConnectionError;
 public class OdooError extends Exception {
 
     public enum Type {
-        TIMEOUT, AUTH_FAIL, SERVER_ERROR, CONNECT_FAIL, NOT_FOUND, BAD_REQUEST, VERSION_ERROR, UNKNOWN_ERROR
+        TIMEOUT, AUTH_FAIL, SERVER_ERROR, CONNECT_FAIL, NOT_FOUND, BAD_REQUEST, VERSION_ERROR, UNKNOWN_ERROR,
+        SESSION_EXPIRED
     }
 
     private Type mType = Type.UNKNOWN_ERROR;
@@ -21,6 +22,11 @@ public class OdooError extends Exception {
 
     public OdooError setStatusCode(int code) {
         statusCode = code;
+        return this;
+    }
+
+    public OdooError setErrorType(Type type) {
+        mType = type;
         return this;
     }
 

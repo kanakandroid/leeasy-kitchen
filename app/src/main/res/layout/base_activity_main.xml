@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#d1d1d1"
     android:orientation="vertical">
 
     <include layout="@layout/base_app_bar" />
@@ -23,7 +24,7 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:src="@drawable/chef"
-            android:tint="#99ffffff" />
+            android:tint="#99000000" />
 
         <TextView
             android:layout_width="match_parent"
@@ -31,7 +32,7 @@
             android:layout_marginTop="@dimen/dim_16"
             android:gravity="center"
             android:text="@string/label_no_orders"
-            android:textColor="#99ffffff"
+            android:textColor="#000000"
             android:textSize="30sp" />
     </LinearLayout>
 

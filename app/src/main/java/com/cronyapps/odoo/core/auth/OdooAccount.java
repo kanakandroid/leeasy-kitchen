@@ -129,4 +129,8 @@ public class OdooAccount {
         return true;
     }
 
+    public void setSession(OdooUser user, String session_id) {
+        accountManager.setUserData(user.account, "session_id", session_id);
+        user.session_id = session_id;
+    }
 }

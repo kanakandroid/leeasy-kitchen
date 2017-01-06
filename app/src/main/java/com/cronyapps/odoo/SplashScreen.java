@@ -1,8 +1,10 @@
 package com.cronyapps.odoo;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
@@ -30,10 +32,22 @@ public class SplashScreen extends CronyActivity {
         if (account.hasAnyAccount()) {
             OdooUser activeAccount = account.getActiveAccount();
             if (activeAccount != null) {
-                if (SetupActivity.isSetupPending(this)) {
-                    startActivity(new Intent(this, SetupActivity.class));
+                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+                if (pref.getBoolean("session_expired", false) &&
+                        pref.getString("session_expired_user", "").equals(activeAccount.getAccountName())) {
+                    Intent userLogin = new Intent(this, UserLoginActivity.class);
+                    userLogin.putExtra(UserLoginActivity.KEY_USER, activeAccount.getAccountName());
+                    startActivity(userLogin);
                     finish();
-                } else startHomeActivity();
+                    return;
+                } else {
+                    if (SetupActivity.isSetupPending(this)) {
+                        startActivity(new Intent(this, SetupActivity.class));
+                        finish();
+                    } else {
+                        startHomeActivity();
+                    }
+                }
             } else {
                 // show accounts activity
             }

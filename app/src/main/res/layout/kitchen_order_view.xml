@@ -8,14 +8,11 @@
         android:id="@+id/detailHeaderView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#aaa"
-        android:gravity="center"
+        android:gravity="center|bottom"
         android:orientation="horizontal"
-        android:paddingBottom="@dimen/dim_8"
-        android:paddingLeft="@dimen/dim_16"
-        android:paddingRight="@dimen/dim_16"
-        android:paddingTop="@dimen/dim_8"
-        android:visibility="gone">
+        android:paddingBottom="@dimen/dim_4"
+        android:paddingLeft="@dimen/dim_4"
+        android:paddingTop="@dimen/dim_8">
 
         <TextView
             android:id="@+id/headerTitle"
@@ -23,22 +20,30 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/pure_white"
+            android:textColor="#000000"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/headerQTY"
+            android:id="@+id/confirmAll"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/pure_white"
+            android:gravity="center"
+            android:paddingLeft="@dimen/dim_16"
+            android:paddingRight="@dimen/dim_16"
+            android:paddingTop="@dimen/dim_8"
+            android:text="@string/label_confirm_all"
+            android:textAllCaps="true"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="#3E50B4"
             android:textStyle="bold" />
+
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/detailView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#ebebeb"
         android:gravity="center"
         android:orientation="horizontal">
 
@@ -59,8 +64,61 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-light"
-                android:textColor="#414141"
-                android:textSize="20sp" />
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="#414141" />
+
+            <LinearLayout
+                android:id="@+id/tableContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingRight="@dimen/dim_4"
+                    android:text="@string/label_booked_table"
+                    android:textColor="#414141"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/lineTableNumber"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAllCaps="true"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="#414141" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/orderTypeContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingRight="@dimen/dim_4"
+                    android:text="@string/label_order_type"
+                    android:textColor="#414141"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/lineOrderType"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAllCaps="true"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="#414141" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/lineCustomer"
@@ -68,38 +126,37 @@
                 android:layout_height="wrap_content"
                 android:textAllCaps="true"
                 android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#414141"
                 android:textStyle="bold" />
 
         </LinearLayout>
 
         <ImageView
-            android:id="@+id/orderInfo"
+            android:id="@+id/actionDo"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="#5F7C8A"
-            android:paddingLeft="@dimen/dim_16"
-            android:paddingRight="@dimen/dim_16"
-            android:src="@drawable/ic_info_outline"
-            android:tint="#fff" />
-
-        <ImageView
-            android:id="@+id/actionReadyToDeliver"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginRight="@dimen/dim_4"
             android:background="#CCDB38"
             android:paddingLeft="@dimen/dim_16"
             android:paddingRight="@dimen/dim_16"
             android:src="@drawable/ic_check_black"
             android:tint="#fff" />
 
+        <ImageView
+            android:id="@+id/actionCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="#CC0000"
+            android:paddingLeft="@dimen/dim_16"
+            android:paddingRight="@dimen/dim_16"
+            android:src="@drawable/ic_close_black"
+            android:tint="#fff"
+            android:visibility="gone" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:paddingLeft="@dimen/dim_16"
             android:gravity="center"
-            android:orientation="vertical"
-            android:paddingRight="@dimen/dim_16">
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/lineQuantity"
@@ -107,8 +164,11 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-light"
                 android:gravity="center"
+                android:paddingLeft="@dimen/dim_16"
+                android:paddingRight="@dimen/dim_16"
                 android:textAllCaps="true"
-                android:textSize="20sp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#99414141"
                 android:textStyle="bold" />
 
             <TextView
@@ -116,11 +176,21 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-light"
                 android:gravity="center"
+                android:paddingLeft="@dimen/dim_16"
+                android:paddingRight="@dimen/dim_16"
                 android:text="@string/label_qty"
                 android:textAllCaps="true"
-                android:textColor="#000000"
-                android:textSize="12sp" />
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#000000" />
 
+            <ImageView
+                android:id="@+id/orderInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#5F7C8A"
+                android:padding="@dimen/dim_4"
+                android:src="@drawable/ic_info_outline"
+                android:tint="#fff" />
         </LinearLayout>
 
     </LinearLayout>

@@ -39,8 +39,8 @@ public class IrModel extends BaseDataModel<IrModel> {
         return domain;
     }
 
-    public void setSyncDate(String model) {
-        Date last_sync = ODateUtils.createDateObject(ODateUtils.getUTCDate(),
+    public void setSyncDate(String model, String syncDateToSet) {
+        Date last_sync = ODateUtils.createDateObject(syncDateToSet,
                 ODateUtils.DEFAULT_FORMAT, true);
         Calendar cal = Calendar.getInstance();
         cal.setTime(last_sync);
