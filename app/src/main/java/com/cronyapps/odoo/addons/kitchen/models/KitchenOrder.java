@@ -1,6 +1,10 @@
 package com.cronyapps.odoo.addons.kitchen.models;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.database.MatrixCursor;
@@ -8,7 +12,11 @@ import android.database.MergeCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 
+import com.cronyapps.odoo.MainActivity;
+import com.cronyapps.odoo.R;
 import com.cronyapps.odoo.api.wrapper.helper.ODomain;
 import com.cronyapps.odoo.api.wrapper.helper.OdooFields;
 import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
@@ -54,6 +62,7 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
             .addSelection("service", "Service")
             .addSelection("selfservice", "Self Service");
 
+    public FieldChar is_notified = new FieldChar("Is Notified").defaultValue("no").setLocalColumn();
 
     public KitchenOrder(Context context, OdooUser user) {
         super(context, user);
@@ -68,9 +77,12 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
         return Uri.withAppendedPath(getUri(), "order_uri");
     }
 
+    public Uri getAllOrderUri() {
+        return Uri.withAppendedPath(getUri(), "all_order_uri");
+    }
 
     public void syncOrders(Bundle extra) {
-        getSyncAdapter().
+        getSyncAdapter().onlySync().noWriteDateCheck().
                 onPerformSync(getOdooUser().account, extra, null, null, new SyncResult());
     }
 
@@ -120,4 +132,112 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
         }
         return new MergeCursor(new Cursor[]{cursor});
     }
+
+    public Cursor getAllOrders() {
+        MatrixCursor cursor = new MatrixCursor(new String[]{"_id", "id", "display_name", "product_qty", "partner_id", "state", "is_group", "reference", "product_id",
+                "partner_id", "table_no", "order_type"});
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cr = db.query(getTableName(), new String[]{"reference", "sum(product_qty) total_product_qty"}, null, null,
+                "reference", null, "create_date desc");
+        if (cr.moveToFirst()) {
+            do {
+                RecordValue value = CursorToRecord.cursorToValues(cr, false);
+                cursor.addRow(new Object[]{-1, -1, value.getString("reference"), value.get("total_product_qty"), -1, null, true, value.getString("reference")
+                        , -1, -1, -1, "false"});
+
+                addAllOrders(value.getString("reference"), "deliver", cursor);
+                addAllOrders(value.getString("reference"), "ready", cursor);
+                addAllOrders(value.getString("reference"), "draft", cursor);
+                addAllOrders(value.getString("reference"), "accept", cursor);
+
+            } while (cr.moveToNext());
+        }
+        return new MergeCursor(new Cursor[]{cursor});
+    }
+
+    private void addAllOrders(String reference, String state, MatrixCursor cursor) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor data = db.query(getTableName(), null, "reference = ? and state in ('" + state + "')", new String[]{reference},
+                null, null, "create_date desc");
+        if (data.moveToFirst()) {
+            do {
+                RecordValue dataValue = CursorToRecord.cursorToValues(data, false);
+                cursor.addRow(new Object[]{
+                        dataValue.getInt("_id"),
+                        dataValue.getInt("id"),
+                        dataValue.getString("display_name"),
+                        dataValue.get("product_qty"),
+                        dataValue.getInt("partner_id"),
+                        dataValue.getString("state"),
+                        false,
+                        dataValue.getString("reference"),
+                        dataValue.getInt("product_id"),
+                        dataValue.getInt("partner_id"),
+                        dataValue.getInt("table_no"),
+                        dataValue.getString("order_type")
+                });
+            } while (data.moveToNext());
+        }
+    }
+
+    public void notifyOrders(MainActivity.UserType userType) {
+        for (KitchenOrder row : select("is_notified = ?", new String[]{"no"})) {
+            String title = "", message = "";
+            Bundle data = new Bundle();
+            ProductProduct product = row.product_id.read();
+            switch (userType) {
+                case Manager:
+                    if (!row.state.getValue().equals("draft")) {
+                        continue;
+                    }
+                    title = "New order";
+                    message = product.name.getValue() + " (" +
+                            row.reference.getValue() + ")";
+                    break;
+                case KitchenUser:
+                    if (!row.state.getValue().equals("accept")) {
+                        continue;
+                    }
+                    title = "New order confirmed";
+                    message = product.name.getValue() + " (" +
+                            row.reference.getValue() + ")";
+                    break;
+//                case Waiter:
+//                    if (!row.state.getValue().equals("ready")) {
+//                        continue;
+//                    }
+//                    title = "Order ready to deliver";
+//                    message = row.product_id.<ProductProduct>read().name.getValue() + " (" +
+//                            row.reference.getValue() + ")";
+//                    break;
+            }
+            data.putInt("order_id", row._id.getValue());
+            RecordValue value = new RecordValue();
+            value.put("is_notified", "yes");
+            update(value, row._id.getValue());
+            processOrderNotification(row._id.getValue(), title, message, data);
+        }
+    }
+
+    private void processOrderNotification(int id, String title, String message, Bundle data) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext());
+        builder.setSmallIcon(R.drawable.chef);
+        builder.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
+        builder.setDefaults(Notification.DEFAULT_ALL);
+        builder.setContentTitle(title);
+        builder.setContentText(message);
+        Intent resultIntent = new Intent(getContext(), MainActivity.class);
+        resultIntent.putExtra(MainActivity.KEY_ORDER_NOTIFICATION, data);
+        // Creating result pending intent
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(getContext(),
+                0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setContentIntent(resultPendingIntent);
+
+        builder.setAutoCancel(true);
+        // Notifying user for new message
+        NotificationManager notifyManager = (NotificationManager)
+                getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        notifyManager.notify(id, builder.build());
+    }
+
 }

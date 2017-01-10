@@ -61,6 +61,9 @@
     <string name="title_accept_all_orders">Accept all orders</string>
     <string name="label_booked_table">Table Number</string>
     <string name="label_order_type">Order Type</string>
+    <string name="label_archived_orders">Archived Orders</string>
+    <string name="label_pre_order_time">Pre-order time</string>
+    <string name="label_go">GO</string>
 
     <string-array name="nav_spinner_items_manager">
         <item>All Orders</item>

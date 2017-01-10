@@ -1,6 +1,8 @@
 package com.cronyapps.odoo;
 
+import android.app.AlarmManager;
 import android.app.LoaderManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,6 +13,7 @@ import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -27,9 +30,11 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.cronyapps.odoo.addons.kitchen.models.ArchivedOrders;
 import com.cronyapps.odoo.addons.kitchen.models.KitchenOrder;
 import com.cronyapps.odoo.addons.kitchen.models.ProductProduct;
 import com.cronyapps.odoo.addons.kitchen.models.RestaurantTable;
+import com.cronyapps.odoo.addons.kitchen.models.service.OrderSyncService;
 import com.cronyapps.odoo.api.OdooApiClient;
 import com.cronyapps.odoo.api.wrapper.handler.gson.OdooResult;
 import com.cronyapps.odoo.api.wrapper.helper.OArguments;
@@ -46,6 +51,7 @@ import com.cronyapps.odoo.helper.OCursorAdapter;
 import com.cronyapps.odoo.helper.utils.CBind;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -53,12 +59,17 @@ public class MainActivity extends CronyActivity implements
         LoaderManager.LoaderCallbacks<Cursor>, OCursorAdapter.OnViewBindListener,
         AdapterView.OnItemSelectedListener {
 
+    public static final String KEY_ORDER_NOTIFICATION = "notification_order_data";
     private KitchenOrder orders;
     private RestaurantTable restaurantTable;
     private OCursorAdapter cursorAdapter;
     private Spinner spinnerNav;
-    private boolean updatingOrder = false;
-    private boolean isManager = false;
+    private UserType userType = UserType.KitchenUser;
+    private boolean isFirstTimeRequested = false;
+
+    public enum UserType {
+        /* Waiter, */ KitchenUser, Manager
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,7 +78,14 @@ public class MainActivity extends CronyActivity implements
         OAppBarUtils.setAppBar(this, false);
         orders = new KitchenOrder(this, null);
         restaurantTable = new RestaurantTable(this, null);
-        isManager = isManager();
+        userType = getUserType();
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        PendingIntent syncIntent = PendingIntent.getService(this, 0,
+                new Intent(this, OrderSyncService.class), 0);
+        alarmManager.cancel(syncIntent);
+        alarmManager.setRepeating(AlarmManager.RTC, Calendar.getInstance().getTimeInMillis(),
+                10000, syncIntent);
         init();
     }
 
@@ -83,8 +101,18 @@ public class MainActivity extends CronyActivity implements
 
     private void init() {
         setTitle(null);
-        int navArray = isManager ?
-                R.array.nav_spinner_items_manager : R.array.nav_spinner_items_user;
+        int navArray = R.array.nav_spinner_items_user;
+        switch (userType) {
+            case KitchenUser:
+                navArray = R.array.nav_spinner_items_user;
+                break;
+            case Manager:
+                navArray = R.array.nav_spinner_items_manager;
+                break;
+//            case Waiter:
+//                navArray = R.array.nav_spinner_items_waiter;
+//                break;
+        }
         spinnerNav = (Spinner) findViewById(R.id.spinner_nav);
         ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, getResources().getStringArray(navArray));
@@ -102,15 +130,18 @@ public class MainActivity extends CronyActivity implements
         requestOrderUpdate();
     }
 
-    private boolean isManager() {
+    private UserType getUserType() {
         boolean kitchen_manager = getUser().hasGroup(this, AppConfig.KITCHEN_MANAGER);
         boolean kitchen_user = getUser().hasGroup(this, AppConfig.KITCHEN_USER);
-        boolean kitchen_waiter = getUser().hasGroup(this, AppConfig.KITCHEN_WAITER);
-        return (kitchen_manager && kitchen_user && kitchen_waiter) || kitchen_manager;
+//        boolean kitchen_waiter = getUser().hasGroup(this, AppConfig.KITCHEN_WAITER);
+        if (kitchen_manager) return UserType.Manager;
+//        if (kitchen_waiter) return UserType.Waiter;
+        if (kitchen_user) return UserType.KitchenUser;
+        return UserType.KitchenUser;
     }
 
     private void requestOrderUpdate() {
-        new GetOrders().execute();
+        startService(new Intent(this, OrderSyncService.class));
     }
 
     @Override
@@ -118,10 +149,24 @@ public class MainActivity extends CronyActivity implements
         Log.v("createLoader", "Getting kitchen orders...");
         String where = null;
         String[] args = {};
+        Uri uri = orders.getOrderUri();
         switch (spinnerNav.getSelectedItemPosition()) {
             case 0:
-                where = isManager ? null : "state in ('accept')";
-                args = isManager ? null : new String[]{};
+                switch (userType) {
+                    case Manager:
+                        where = null;
+                        args = null;
+                        uri = orders.getAllOrderUri();
+                        break;
+                    case KitchenUser:
+                        where = "state in ('accept') and state not in ('deliver', 'cancel')";
+                        args = new String[]{};
+                        break;
+//                    case Waiter:
+//                        where = "state in ('ready') and state not in ('cancel')";
+//                        args = new String[]{};
+//                        break;
+                }
                 break;
             case 1:
                 where = "state in ('draft')";
@@ -130,10 +175,10 @@ public class MainActivity extends CronyActivity implements
                 where = "state in ('accept')";
                 break;
             case 3:
-                where = "";
+                where = "state in ('ready')";
                 break;
         }
-        return new CursorLoader(this, orders.getOrderUri(), null, where, args, null);
+        return new CursorLoader(this, uri, null, where, args, null);
     }
 
     @Override
@@ -141,8 +186,11 @@ public class MainActivity extends CronyActivity implements
         if (cursor.getCount() <= 0) {
             findViewById(R.id.no_items).setVisibility(View.VISIBLE);
             findViewById(R.id.orderListView).setVisibility(View.GONE);
-            Toast.makeText(this, R.string.toast_getting_data_please_wait, Toast.LENGTH_SHORT).show();
-            new GetOrders().execute();
+            if (!isFirstTimeRequested) {
+                Toast.makeText(this, R.string.toast_getting_data_please_wait, Toast.LENGTH_SHORT).show();
+                startService(new Intent(this, OrderSyncService.class));
+                isFirstTimeRequested = true;
+            }
         } else {
             findViewById(R.id.no_items).setVisibility(View.GONE);
             findViewById(R.id.orderListView).setVisibility(View.VISIBLE);
@@ -224,7 +272,7 @@ public class MainActivity extends CronyActivity implements
                 });
             }
             view.findViewById(R.id.actionCancel).setVisibility(View.GONE);
-            if (isManager && value.getString("state").equals("draft")) {
+            if (userType == UserType.Manager && value.getString("state").equals("draft")) {
                 view.findViewById(R.id.actionCancel).setVisibility(View.VISIBLE);
                 view.findViewById(R.id.actionCancel).setTag(value);
                 view.findViewById(R.id.actionCancel).setOnClickListener(new View.OnClickListener() {
@@ -249,7 +297,8 @@ public class MainActivity extends CronyActivity implements
             view.findViewById(R.id.orderTypeContainer).setVisibility(View.GONE);
             if (!value.getString("order_type").equals("false")) {
                 view.findViewById(R.id.orderTypeContainer).setVisibility(View.VISIBLE);
-                CBind.setText(view.findViewById(R.id.lineOrderType), ": " + orders.order_type.getDisplayValue());
+                CBind.setText(view.findViewById(R.id.lineOrderType), orders.order_type.getDisplayValue());
+                CBind.setText(view.findViewById(R.id.preorderTime),orders.preordertime.get("MMMM, dd yyy hh:mm aa"));
             }
 
         } else {
@@ -257,7 +306,7 @@ public class MainActivity extends CronyActivity implements
             view.findViewById(R.id.detailHeaderView).setVisibility(View.VISIBLE);
             CBind.setText(view.findViewById(R.id.headerTitle), orders.display_name.getValue());
             view.findViewById(R.id.confirmAll).setVisibility(View.GONE);
-            if (isManager) {
+            if (userType == UserType.Manager) {
                 view.findViewById(R.id.confirmAll).setVisibility(View.VISIBLE);
                 view.findViewById(R.id.confirmAll).setTag(value);
                 view.findViewById(R.id.confirmAll).setOnClickListener(new View.OnClickListener() {
@@ -283,7 +332,10 @@ public class MainActivity extends CronyActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_refresh:
-                new GetOrders().execute();
+                startService(new Intent(this, OrderSyncService.class));
+                break;
+            case R.id.menu_archived_orders:
+                startActivity(new Intent(this, ArchivedOrders.class));
                 break;
             case R.id.menu_refresh_app_data:
                 startService(new Intent(this, SetupIntentService.class));
@@ -377,12 +429,10 @@ public class MainActivity extends CronyActivity implements
             dialog.setMessage(getString(R.string.msg_please_wait));
             dialog.setCancelable(false);
             dialog.show();
-            updatingOrder = true;
         }
 
         @Override
         protected Void doInBackground(Integer... ids) {
-            updatingOrder = true;
             OdooApiClient client = orders.getAPIClient().setSynchronizedRequest(true);
             OArguments arguments = new OArguments();
             arguments.add(JSONUtils.arrayToJsonArray(ids));
@@ -400,46 +450,48 @@ public class MainActivity extends CronyActivity implements
         @Override
         protected void onPostExecute(Void aVoid) {
             dialog.dismiss();
-            updatingOrder = false;
             getLoaderManager().restartLoader(0, null, MainActivity.this);
         }
     }
 
-    private class GetOrders extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            if (!updatingOrder) {
-                try {
-                    Thread.sleep(7000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                orders.syncOrders(null);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            Log.v("Get Orders", "Reloading data...");
-            if (!updatingOrder)
-                getLoaderManager().restartLoader(0, null, MainActivity.this);
-            requestOrderUpdate();
-        }
-    }
+//    private class GetOrders extends AsyncTask<Void, Void, Void> {
+//
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//        }
+//
+//        @Override
+//        protected Void doInBackground(Void... voids) {
+//            if (!updatingOrder) {
+//                try {
+//                    Thread.sleep(7000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                orders.syncOrders(null);
+//            }
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Void aVoid) {
+//            super.onPostExecute(aVoid);
+//            Log.v("Get Orders", "Reloading data...");
+//            if (!updatingOrder)
+//                getLoaderManager().restartLoader(0, null, MainActivity.this);
+//            requestOrderUpdate();
+//        }
+//    }
 
     @Override
     protected void onResume() {
         super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(setupStateReceiver,
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
+        broadcastManager.registerReceiver(setupStateReceiver,
                 new IntentFilter(SetupIntentService.ACTION_SETUP));
+        broadcastManager.registerReceiver(orderSyncStatus,
+                new IntentFilter(OrderSyncService.ACTION_ORDER_SYNC));
     }
 
     @Override
@@ -447,8 +499,17 @@ public class MainActivity extends CronyActivity implements
         super.onPause();
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(setupStateReceiver);
+        LocalBroadcastManager.getInstance(this)
+                .unregisterReceiver(orderSyncStatus);
     }
 
+    private BroadcastReceiver orderSyncStatus = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.v("OrderUpdated", "Reloading data...");
+            getLoaderManager().restartLoader(0, null, MainActivity.this);
+        }
+    };
     private BroadcastReceiver setupStateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {

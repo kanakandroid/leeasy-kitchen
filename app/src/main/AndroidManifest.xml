@@ -61,7 +61,15 @@
         <service
             android:name=".base.service.SetupIntentService"
             android:exported="false" />
-        <activity android:name=".MainActivity" />
+
+        <activity
+            android:name=".MainActivity"
+            android:launchMode="singleTop" />
+        <activity android:name=".addons.kitchen.models.ArchivedOrders" />
+
+        <service
+            android:name=".addons.kitchen.models.service.OrderSyncService"
+            android:exported="false" />
 
         <!--Kitchen order-->
         <provider

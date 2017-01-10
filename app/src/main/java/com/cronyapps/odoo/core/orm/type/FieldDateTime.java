@@ -22,4 +22,12 @@ public class FieldDateTime extends FieldType<FieldDateTime, String> {
             return ODateUtils.createDateObject(value.toString(), ODateUtils.DEFAULT_FORMAT, false);
         return null;
     }
+
+    public String get(String format) {
+        Object value = getValue();
+        if (value != null && !value.toString().equals("false")) {
+            return ODateUtils.getDate(getDateWithTimezone(), format);
+        }
+        return null;
+    }
 }

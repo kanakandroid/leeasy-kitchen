@@ -9,6 +9,9 @@
 
     <group android:id="@+id/more_menu">
         <item
+            android:id="@+id/menu_archived_orders"
+            android:title="@string/label_archived_orders" />
+        <item
             android:id="@+id/menu_refresh_app_data"
             android:title="@string/label_refresh_data" />
     </group>

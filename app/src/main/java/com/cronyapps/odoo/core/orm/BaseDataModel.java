@@ -195,6 +195,10 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
         return select(null, null, null, null);
     }
 
+    public ModelType select(String where, String[] args) {
+        return select(null, where, args, null);
+    }
+
     public List<RecordValue> select(String[] projection, String where, String... args) {
         OdooRecordUtils utils = new OdooRecordUtils(this);
         List<RecordValue> items = new ArrayList<>();
