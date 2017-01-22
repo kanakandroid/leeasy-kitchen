@@ -78,6 +78,10 @@
             android:exported="false"
             android:multiprocess="true" />
 
+        <activity
+            android:name=".AboutApp"
+            android:label="@string/label_about" />
+
     </application>
 
 </manifest>

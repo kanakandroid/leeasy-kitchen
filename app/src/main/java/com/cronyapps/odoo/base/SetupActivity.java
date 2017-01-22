@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -112,14 +113,21 @@ public class SetupActivity extends CronyActivity {
                     case SetupIntentService.KEY_SETUP_DONE:
                         findViewById(R.id.progressBar).setVisibility(View.GONE);
                         findViewById(R.id.setupDone).setVisibility(View.VISIBLE);
-                        findViewById(R.id.btnLetsExplore).setVisibility(View.VISIBLE);
-                        findViewById(R.id.btnLetsExplore).setOnClickListener(new View.OnClickListener() {
+//                        findViewById(R.id.btnLetsExplore).setVisibility(View.VISIBLE);
+//                        findViewById(R.id.btnLetsExplore).setOnClickListener(new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View view) {
+//                                startActivity(new Intent(SetupActivity.this, MainActivity.class));
+//                                finish();
+//                            }
+//                        });
+                        new Handler().postDelayed(new Runnable() {
                             @Override
-                            public void onClick(View view) {
+                            public void run() {
                                 startActivity(new Intent(SetupActivity.this, MainActivity.class));
                                 finish();
                             }
-                        });
+                        }, 300);
                         break;
                     case SetupIntentService.KEY_NO_APP_ACCESS:
                         noAccess = true;

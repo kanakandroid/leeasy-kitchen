@@ -12,7 +12,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -38,14 +41,17 @@ import com.cronyapps.odoo.addons.kitchen.models.service.OrderSyncService;
 import com.cronyapps.odoo.api.OdooApiClient;
 import com.cronyapps.odoo.api.wrapper.handler.gson.OdooResult;
 import com.cronyapps.odoo.api.wrapper.helper.OArguments;
+import com.cronyapps.odoo.api.wrapper.helper.OdooUser;
 import com.cronyapps.odoo.api.wrapper.impl.IOdooResponse;
 import com.cronyapps.odoo.api.wrapper.utils.JSONUtils;
 import com.cronyapps.odoo.base.addons.res.models.ResPartner;
 import com.cronyapps.odoo.base.service.SetupIntentService;
 import com.cronyapps.odoo.config.AppConfig;
+import com.cronyapps.odoo.core.auth.OdooAccount;
 import com.cronyapps.odoo.core.helper.CronyActivity;
 import com.cronyapps.odoo.core.orm.RecordValue;
 import com.cronyapps.odoo.core.orm.utils.CursorToRecord;
+import com.cronyapps.odoo.core.utils.BitmapUtils;
 import com.cronyapps.odoo.core.utils.OAppBarUtils;
 import com.cronyapps.odoo.helper.OCursorAdapter;
 import com.cronyapps.odoo.helper.utils.CBind;
@@ -85,7 +91,7 @@ public class MainActivity extends CronyActivity implements
                 new Intent(this, OrderSyncService.class), 0);
         alarmManager.cancel(syncIntent);
         alarmManager.setRepeating(AlarmManager.RTC, Calendar.getInstance().getTimeInMillis(),
-                10000, syncIntent);
+                5000, syncIntent);
         init();
     }
 
@@ -298,7 +304,7 @@ public class MainActivity extends CronyActivity implements
             if (!value.getString("order_type").equals("false")) {
                 view.findViewById(R.id.orderTypeContainer).setVisibility(View.VISIBLE);
                 CBind.setText(view.findViewById(R.id.lineOrderType), orders.order_type.getDisplayValue());
-                CBind.setText(view.findViewById(R.id.preorderTime),orders.preordertime.get("MMMM, dd yyy hh:mm aa"));
+                CBind.setText(view.findViewById(R.id.preorderTime), orders.preordertime.get("MMMM, dd yyy hh:mm aa"));
             }
 
         } else {
@@ -325,6 +331,14 @@ public class MainActivity extends CronyActivity implements
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+
+        OdooUser user = getUser();
+        MenuItem profile = menu.findItem(R.id.menu_profile);
+        profile.setTitle(user.name);
+        Bitmap avatar = user.avatar.equals("false") ? BitmapUtils.getAlphabetImage(this, user.name) :
+                BitmapUtils.getBitmapImage(this, user.avatar);
+        Drawable icon = new BitmapDrawable(getResources(), avatar);
+        profile.setIcon(icon);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -340,8 +354,63 @@ public class MainActivity extends CronyActivity implements
             case R.id.menu_refresh_app_data:
                 startService(new Intent(this, SetupIntentService.class));
                 break;
+            case R.id.menu_about:
+                startActivity(new Intent(this, AboutApp.class));
+                break;
+            case R.id.menu_logout:
+                logoutUser();
+                break;
+            case R.id.menu_profile:
+                Log.d(">>", "Nothing to do here. Profile clicked.");
+                break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void logoutUser() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(false);
+        builder.setTitle(R.string.title_confirm);
+        builder.setMessage(R.string.msg_are_you_sure_want_to_logout);
+        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                new RemoveAccount().execute();
+            }
+        });
+        builder.setNegativeButton(android.R.string.cancel, null);
+        builder.show();
+    }
+
+    private class RemoveAccount extends AsyncTask<Void, Void, Void> {
+        private ProgressDialog dialog;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            dialog = new ProgressDialog(MainActivity.this);
+            dialog.setCancelable(false);
+            dialog.setMessage(getString(R.string.msg_logging_out));
+            dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            OdooAccount account = new OdooAccount(MainActivity.this);
+            OdooUser user = OdooUser.get(MainActivity.this);
+            if (account.removeAccount(user)) {
+                Log.i(account.getClass().getSimpleName(), "Account removed : " + user.getAccountName());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            dialog.dismiss();
+            startActivity(new Intent(MainActivity.this, OdooLogin.class));
+            finish();
+        }
     }
 
     private void orderAction(final String action_method, final RecordValue value, final boolean processAll) {

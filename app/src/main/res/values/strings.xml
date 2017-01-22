@@ -64,6 +64,25 @@
     <string name="label_archived_orders">Archived Orders</string>
     <string name="label_pre_order_time">Pre-order time</string>
     <string name="label_go">GO</string>
+    <string name="label_about">About</string>
+    <string name="about_kitchen_app_and_version">Kitchen App Version 1.0.0</string>
+    <string name="about_copyright_content">All content, pictures and texts of this app are protected by copyright.</string>
+    <string name="about_copyright_company">© 2016 – 2017 Leeasy Solutions UG (limited liability)</string>
+    <string name="label_imprint">IMPRINT</string>
+    <string name="about_imprint_content">(ACCORDING TO § 5 TMG)</string>
+    <string name="about_company">LeEasy Solutions UG (limited liability)</string>
+    <string name="about_address">Date of entry 19 \n74076 Heilbronn, Germany \nManaging Director: Melanie Lee \nRegister details: AG Stuttgart / HRB 757846</string>
+    <string name="about_contact">Contact</string>
+    <string name="about_contact_details">Phone: 07131/40 55 675 \nE-mail: hello@leeasy-solutions.com</string>
+    <string name="about_tax_number">Tax Number</string>
+    <string name="about_tax_number_details">According to §27a of the German Turnover \nTax Act: 65204/02297 \nVAT ID: DE308120496</string>
+    <string name="about_source">Source: www.e-right24.de</string>
+    <string name="title_logout">Logout</string>
+    <string name="msg_are_you_sure_want_to_logout">Are you sure want to logout ?</string>
+    <string name="msg_logging_out">Logging out....</string>
+    <string name="label_refresh_app_data">Update App Data</string>
+    <string name="label_more">More</string>
+    <string name="label_profile">Profile</string>
 
     <string-array name="nav_spinner_items_manager">
         <item>All Orders</item>
@@ -77,4 +96,6 @@
     <string-array name="nav_spinner_items_waiter">
         <item>Waiter Orders</item>
     </string-array>
+
+
 </resources>

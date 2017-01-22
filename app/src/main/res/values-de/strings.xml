@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kitchen</string>
+    <string name="label_archived_orders">Archivierte Bestellungen</string>
+    <string name="label_refresh_data">Daten aktualisieren</string>
+    <string name="label_confirm_all">Gesamte Bestellung Annehmen</string>
+    <string name="label_qty">ANZ</string>
+
+    <string name="label_reference">REFERENZ</string>
+    <string name="label_product">Product</string>
+    <string name="label_quantity">Anzahl</string>
+    <string name="label_customer">Kunde</string>
+    <string name="label_order_type">Bestellart</string>
+    <string name="title_confirm">Bestellannahme</string>
+    <string name="title_accept_order">Bestellung annehmen</string>
+    <string name="title_ready_to_deliver">Auslieferungsbereit</string>
+    <string name="title_deliver_order">Bestellung ausliefern</string>
+    <string name="label_about">Etwa</string>
+    <string name="about_kitchen_app_and_version">Kitchen-App Version 1.0.0</string>
+    <string name="about_copyright_content">Alle Inhalte, Bilder und Texte dieser App unterliegen urheberrechtlichem Schutz.</string>
+    <string name="about_copyright_company">©2016–2017 Leeasy-Solutions UG (haftungsbeschränkt)</string>
+    <string name="label_imprint">IMPRESSUM</string>
+    <string name="about_imprint_content">(ANGABEN GEMÄSS § 5 TMG)</string>
+    <string name="about_company">LeEasy Solutions UG (haftungsbeschränkt)</string>
+    <string name="about_address">Raffeltersteige 19 \n74076 Heilbronn \nGeschäftsführerin: Melanie Lee \nRegisterangaben: AG Stuttgart / HRB 757846</string>
+    <string name="about_contact">Kontakt</string>
+    <string name="about_contact_details">Telefon: 07131/40 55 675 \nE-Mail: hello@leeasy-solutions.com</string>
+    <string name="about_tax_number">Steuernummer</string>
+    <string name="about_tax_number_details">gemäß §27 a Umsatzsteuergesetz:   65204/02297 \nUmsatzsteuer-ID: DE308120496</string>
+    <string name="about_source">Quelle: www.e-right24.de</string>
+
+    <string-array name="nav_spinner_items_manager">
+        <item>Alle Bestellungen</item>
+        <item>Eigentümer Bestellungen</item>
+        <item>Küche Bestellungen</item>
+    </string-array>
+    <string-array name="nav_spinner_items_user">
+        <item>Küche Bestellungen</item>
+    </string-array>
+</resources>

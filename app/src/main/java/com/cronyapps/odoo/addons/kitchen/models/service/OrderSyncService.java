@@ -23,7 +23,7 @@ public class OrderSyncService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         if (getUser() != null && NetworkUtils.isConnected(getApplicationContext())) {
             try {
-                Thread.sleep(7000);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -38,6 +38,7 @@ public class OrderSyncService extends IntentService {
     }
 
     private MainActivity.UserType getUserType() {
+        if (getUser() == null) return null;
         boolean kitchen_manager = getUser().hasGroup(this, AppConfig.KITCHEN_MANAGER);
         boolean kitchen_user = getUser().hasGroup(this, AppConfig.KITCHEN_USER);
 //        boolean kitchen_waiter = getUser().hasGroup(this, AppConfig.KITCHEN_WAITER);
