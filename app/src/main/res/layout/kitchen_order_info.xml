@@ -100,6 +100,22 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@color/colorTextIcon" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/dim_4"
+        android:text="@string/label_note"
+        android:textAllCaps="true"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@color/colorSecondaryText" />
+
+    <TextView
+        android:id="@+id/orderNote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/dim_16"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/colorTextIcon" />
 
     <LinearLayout
         android:id="@+id/orderTableContainer"

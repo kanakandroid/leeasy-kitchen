@@ -64,6 +64,10 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
 
     public FieldChar is_notified = new FieldChar("Is Notified").defaultValue("no").setLocalColumn();
 
+    public FieldChar delivery_time = new FieldChar("delivery time").defaultValue("false");
+    public FieldChar delivery_method = new FieldChar("Delivery Method");
+    public FieldChar note = new FieldChar("Note");
+
     public KitchenOrder(Context context, OdooUser user) {
         super(context, user);
     }
@@ -94,14 +98,14 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
     public Cursor getOrders(String selection, String[] selectionArgs) {
         SQLiteDatabase db = getReadableDatabase();
         MatrixCursor cursor = new MatrixCursor(new String[]{"_id", "id", "display_name", "product_qty", "partner_id", "state", "is_group", "reference", "product_id",
-                "partner_id", "table_no", "order_type"});
-        Cursor cr = db.query(getTableName(), new String[]{"reference", "sum(product_qty) total_product_qty"}, selection, selectionArgs,
+                "partner_id", "table_no", "order_type", "create_date", "delivery_method", "delivery_time", "note"});
+        Cursor cr = db.query(getTableName(), new String[]{"reference", "sum(product_qty) total_product_qty", "create_date"}, selection, selectionArgs,
                 "reference", null, "create_date desc");
         if (cr.moveToFirst()) {
             do {
                 RecordValue value = CursorToRecord.cursorToValues(cr, false);
                 cursor.addRow(new Object[]{-1, -1, value.getString("reference"), value.get("total_product_qty"), -1, null, true, value.getString("reference")
-                        , -1, -1, -1, "false"});
+                        , -1, -1, -1, "false", value.getString("create_date"), "false", "false", "false"});
                 List<String> args = new ArrayList<>();
                 if (selectionArgs != null)
                     args.addAll(Arrays.asList(selectionArgs));
@@ -124,7 +128,11 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
                                 dataValue.getInt("product_id"),
                                 dataValue.getInt("partner_id"),
                                 dataValue.getInt("table_no"),
-                                dataValue.getString("order_type")
+                                dataValue.getString("order_type"),
+                                dataValue.getString("create_date"),
+                                dataValue.getString("delivery_method"),
+                                dataValue.getString("delivery_time"),
+                                dataValue.getString("note")
                         });
                     } while (data.moveToNext());
                 }
@@ -135,15 +143,15 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
 
     public Cursor getAllOrders() {
         MatrixCursor cursor = new MatrixCursor(new String[]{"_id", "id", "display_name", "product_qty", "partner_id", "state", "is_group", "reference", "product_id",
-                "partner_id", "table_no", "order_type"});
+                "partner_id", "table_no", "order_type", "create_date", "delivery_method", "delivery_time", "note"});
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cr = db.query(getTableName(), new String[]{"reference", "sum(product_qty) total_product_qty"}, null, null,
+        Cursor cr = db.query(getTableName(), new String[]{"reference", "sum(product_qty) total_product_qty", "create_date"}, null, null,
                 "reference", null, "create_date desc");
         if (cr.moveToFirst()) {
             do {
                 RecordValue value = CursorToRecord.cursorToValues(cr, false);
                 cursor.addRow(new Object[]{-1, -1, value.getString("reference"), value.get("total_product_qty"), -1, null, true, value.getString("reference")
-                        , -1, -1, -1, "false"});
+                        , -1, -1, -1, "false", value.getString("create_date"), "false", "false", "false"});
 
                 addAllOrders(value.getString("reference"), "deliver", cursor);
                 addAllOrders(value.getString("reference"), "ready", cursor);
@@ -174,7 +182,11 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
                         dataValue.getInt("product_id"),
                         dataValue.getInt("partner_id"),
                         dataValue.getInt("table_no"),
-                        dataValue.getString("order_type")
+                        dataValue.getString("order_type"),
+                        dataValue.getString("create_date"),
+                        dataValue.getString("delivery_method"),
+                        dataValue.getString("delivery_time"),
+                        dataValue.getString("note")
                 });
             } while (data.moveToNext());
         }

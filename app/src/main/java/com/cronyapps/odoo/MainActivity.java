@@ -304,13 +304,26 @@ public class MainActivity extends CronyActivity implements
             if (!value.getString("order_type").equals("false")) {
                 view.findViewById(R.id.orderTypeContainer).setVisibility(View.VISIBLE);
                 CBind.setText(view.findViewById(R.id.lineOrderType), orders.order_type.getDisplayValue());
-                CBind.setText(view.findViewById(R.id.preorderTime), orders.preordertime.get("MMMM, dd yyy hh:mm aa"));
+                view.findViewById(R.id.deliveryTimeContainer).setVisibility(View.GONE);
+                if (orders.order_type.getValue().equals("foodintime")) {
+                    view.findViewById(R.id.deliveryTimeContainer).setVisibility(View.VISIBLE);
+                    CBind.setText(view.findViewById(R.id.deliveryTime), orders.delivery_time.getValue());
+                }
             }
-
+            if (!value.getString("delivery_method").equals("false")) {
+                view.findViewById(R.id.delivery_container).setVisibility(View.VISIBLE);
+                CBind.setText(view.findViewById(R.id.delivery_method), value.getString("delivery_method"));
+            } else {
+                view.findViewById(R.id.delivery_container).setVisibility(View.GONE);
+            }
+            if (value.getString("note").equals("false"))
+                value.put("note", "--");
+            CBind.setText(view.findViewById(R.id.lineNote), value.getString("note"));
         } else {
             view.findViewById(R.id.detailView).setVisibility(View.GONE);
             view.findViewById(R.id.detailHeaderView).setVisibility(View.VISIBLE);
             CBind.setText(view.findViewById(R.id.headerTitle), orders.display_name.getValue());
+            CBind.setText(view.findViewById(R.id.orderDate), orders.create_date.get("MMM, dd yyy hh:mm aa"));
             view.findViewById(R.id.confirmAll).setVisibility(View.GONE);
             if (userType == UserType.Manager) {
                 view.findViewById(R.id.confirmAll).setVisibility(View.VISIBLE);
@@ -369,7 +382,6 @@ public class MainActivity extends CronyActivity implements
 
     private void logoutUser() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setCancelable(false);
         builder.setTitle(R.string.title_confirm);
         builder.setMessage(R.string.msg_are_you_sure_want_to_logout);
         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -476,6 +488,9 @@ public class MainActivity extends CronyActivity implements
             view.findViewById(R.id.orderTypeContainer).setVisibility(View.VISIBLE);
             CBind.setText(view.findViewById(R.id.orderType), orders.order_type.get(value.getString("order_type")));
         }
+        if (orders.note.getValue().equals("false"))
+            orders.note.setValue("--");
+        CBind.setText(view.findViewById(R.id.orderNote), orders.note.getValue());
 
         builder.setView(view);
         builder.setPositiveButton(android.R.string.ok, null);

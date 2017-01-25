@@ -67,7 +67,7 @@ public abstract class BaseDataModel<ModelType> extends SQLiteHelper implements I
     public FieldInteger id = new FieldInteger("Server ID").required().defaultValue(0);
     FieldDateTime _write_date = new FieldDateTime("Local Write DAte").defaultValue("false").setLocalColumn();
     FieldDateTime write_date = new FieldDateTime("Write Date").required().defaultValue("false");
-    FieldDateTime create_date = new FieldDateTime("Create Date").required().defaultValue("false");
+    public FieldDateTime create_date = new FieldDateTime("Create Date").required().defaultValue("false");
 
     public BaseDataModel(Context context, OdooUser user) {
         super(context, user != null ? user : OdooUser.get(context));

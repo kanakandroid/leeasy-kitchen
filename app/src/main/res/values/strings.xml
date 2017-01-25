@@ -62,7 +62,7 @@
     <string name="label_booked_table">Table Number</string>
     <string name="label_order_type">Order Type</string>
     <string name="label_archived_orders">Archived Orders</string>
-    <string name="label_pre_order_time">Pre-order time</string>
+    <string name="label_delivery_time">Delivery time</string>
     <string name="label_go">GO</string>
     <string name="label_about">About</string>
     <string name="about_kitchen_app_and_version">Kitchen App Version 1.0.0</string>
@@ -83,6 +83,8 @@
     <string name="label_refresh_app_data">Update App Data</string>
     <string name="label_more">More</string>
     <string name="label_profile">Profile</string>
+    <string name="label_delivery_method">Delivery Method:</string>
+    <string name="label_note">Note</string>
 
     <string-array name="nav_spinner_items_manager">
         <item>All Orders</item>
