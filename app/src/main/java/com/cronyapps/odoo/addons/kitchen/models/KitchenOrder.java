@@ -60,7 +60,8 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
     public FieldSelection order_type = new FieldSelection("Order Type")
             .addSelection("foodintime", "Food in Time")
             .addSelection("service", "Service")
-            .addSelection("selfservice", "Self Service");
+            .addSelection("selfservice", "Self Service")
+            .addSelection("pos_order","POS Order");
 
     public FieldChar is_notified = new FieldChar("Is Notified").defaultValue("no").setLocalColumn();
 
