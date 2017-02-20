@@ -72,6 +72,7 @@ public class MainActivity extends CronyActivity implements
     private Spinner spinnerNav;
     private UserType userType = UserType.KitchenUser;
     private boolean isFirstTimeRequested = false;
+    private ProgressDialog orderSyncDialog;
 
     public enum UserType {
         /* Waiter, */ KitchenUser, Manager
@@ -86,13 +87,24 @@ public class MainActivity extends CronyActivity implements
         restaurantTable = new RestaurantTable(this, null);
         userType = getUserType();
 
+        cancelOrderSyncService();
+        setOrderSyncService();
+        init();
+    }
+
+    private void cancelOrderSyncService() {
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         PendingIntent syncIntent = PendingIntent.getService(this, 0,
                 new Intent(this, OrderSyncService.class), 0);
         alarmManager.cancel(syncIntent);
+    }
+
+    private void setOrderSyncService() {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        PendingIntent syncIntent = PendingIntent.getService(this, 0,
+                new Intent(this, OrderSyncService.class), 0);
         alarmManager.setRepeating(AlarmManager.RTC, Calendar.getInstance().getTimeInMillis(),
                 5000, syncIntent);
-        init();
     }
 
     @Override
@@ -359,6 +371,12 @@ public class MainActivity extends CronyActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_refresh:
+                if (orderSyncDialog != null && orderSyncDialog.isShowing()) {
+                    orderSyncDialog.dismiss();
+                }
+                orderSyncDialog = new ProgressDialog(this);
+                orderSyncDialog.setMessage(getString(R.string.toast_updating_data));
+                orderSyncDialog.show();
                 startService(new Intent(this, OrderSyncService.class));
                 break;
             case R.id.menu_archived_orders:
@@ -381,6 +399,7 @@ public class MainActivity extends CronyActivity implements
     }
 
     private void logoutUser() {
+        cancelOrderSyncService();
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.title_confirm);
         builder.setMessage(R.string.msg_are_you_sure_want_to_logout);
@@ -592,6 +611,9 @@ public class MainActivity extends CronyActivity implements
         public void onReceive(Context context, Intent intent) {
             Log.v("OrderUpdated", "Reloading data...");
             getLoaderManager().restartLoader(0, null, MainActivity.this);
+            if (orderSyncDialog != null && orderSyncDialog.isShowing()) {
+                orderSyncDialog.dismiss();
+            }
         }
     };
     private BroadcastReceiver setupStateReceiver = new BroadcastReceiver() {
@@ -603,8 +625,8 @@ public class MainActivity extends CronyActivity implements
                 assert key_result != null;
                 switch (key_result) {
                     case SetupIntentService.KEY_SETUP_DONE:
-                        startActivity(new Intent(MainActivity.this, MainActivity.class));
-                        finish();
+                        Toast.makeText(MainActivity.this, R.string.toast_data_updated, Toast.LENGTH_SHORT).show();
+                        init();
                         break;
                 }
             }

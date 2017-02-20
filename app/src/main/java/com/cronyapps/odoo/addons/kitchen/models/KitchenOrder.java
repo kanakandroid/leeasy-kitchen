@@ -24,6 +24,8 @@ import com.cronyapps.odoo.base.addons.res.models.ResPartner;
 import com.cronyapps.odoo.core.orm.BaseDataModel;
 import com.cronyapps.odoo.core.orm.RecordValue;
 import com.cronyapps.odoo.core.orm.annotation.DataModel;
+import com.cronyapps.odoo.core.orm.annotation.DataModelSetup;
+import com.cronyapps.odoo.core.orm.annotation.ModelSetup;
 import com.cronyapps.odoo.core.orm.type.FieldChar;
 import com.cronyapps.odoo.core.orm.type.FieldDateTime;
 import com.cronyapps.odoo.core.orm.type.FieldFloat;
@@ -36,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@DataModelSetup(ModelSetup.DEFAULT)
 @DataModel("kitchen.order")
 public class KitchenOrder extends BaseDataModel<KitchenOrder> {
 
@@ -61,7 +64,7 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
             .addSelection("foodintime", "Food in Time")
             .addSelection("service", "Service")
             .addSelection("selfservice", "Self Service")
-            .addSelection("pos_order","POS Order");
+            .addSelection("pos_order", "POS Order");
 
     public FieldChar is_notified = new FieldChar("Is Notified").defaultValue("no").setLocalColumn();
 
@@ -194,6 +197,7 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
     }
 
     public void notifyOrders(MainActivity.UserType userType) {
+        if (OdooUser.get(getContext()) == null) return;
         for (KitchenOrder row : select("is_notified = ?", new String[]{"no"})) {
             String title = "", message = "";
             Bundle data = new Bundle();
