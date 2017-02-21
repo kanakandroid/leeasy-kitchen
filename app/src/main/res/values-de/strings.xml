@@ -7,11 +7,11 @@
     <string name="label_qty">ANZ</string>
 
     <string name="label_reference">REFERENZ</string>
-    <string name="label_product">Product</string>
+    <string name="label_product">Produkt</string>
     <string name="label_quantity">Anzahl</string>
     <string name="label_customer">Kunde</string>
     <string name="label_order_type">Bestellart</string>
-    <string name="title_confirm">Bestellannahme</string>
+    <string name="title_confirm">Ausloggen</string>
     <string name="title_accept_order">Bestellung annehmen</string>
     <string name="title_ready_to_deliver">Auslieferungsbereit</string>
     <string name="title_deliver_order">Bestellung ausliefern</string>
@@ -37,4 +37,17 @@
     <string-array name="nav_spinner_items_user">
         <item>Küche Bestellungen</item>
     </string-array>
+    <string name="label_refresh_app_data">Daten aktualisieren</string>
+    <string name="label_note">Anmerkung</string>
+    <string name="label_booked_table">Tischnummer</string>
+    <string name="label_delivery_method">Liefermethode</string>
+    <string name="label_delivery_time">Lieferzeit</string>
+    <string name="msg_please_wait">Bitte warten…</string>
+    <string name="msg_are_you_sure_want_to_logout">Sie werden jetzt ausgeloggt.</string>
+    <string name="hint_login_email">Benutzer/E-Mail</string>
+    <string name="hint_password">Passwort</string>
+    <string name="msg_one_time_setup">Alle benötigten Dienste werden gestartet…</string>
+    <string name="msg_authenticating">Authentifizieren…</string>
+    <string name="msg_logging_out">Ausloggen…</string>
+    <string name="label_no_orders">Keine Bestellungen vorhanden</string>
 </resources>
