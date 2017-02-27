@@ -11,11 +11,11 @@
     <string name="label_quantity">Anzahl</string>
     <string name="label_customer">Kunde</string>
     <string name="label_order_type">Bestellart</string>
-    <string name="title_confirm">Ausloggen</string>
+    <string name="title_confirm">Bestätigung</string>
     <string name="title_accept_order">Bestellung annehmen</string>
     <string name="title_ready_to_deliver">Auslieferungsbereit</string>
     <string name="title_deliver_order">Bestellung ausliefern</string>
-    <string name="label_about">Etwa</string>
+    <string name="label_about">Über</string>
     <string name="about_kitchen_app_and_version">Kitchen-App Version 1.0.0</string>
     <string name="about_copyright_content">Alle Inhalte, Bilder und Texte dieser App unterliegen urheberrechtlichem Schutz.</string>
     <string name="about_copyright_company">©2016–2017 Leeasy-Solutions UG (haftungsbeschränkt)</string>
@@ -50,4 +50,5 @@
     <string name="msg_authenticating">Authentifizieren…</string>
     <string name="msg_logging_out">Ausloggen…</string>
     <string name="label_no_orders">Keine Bestellungen vorhanden</string>
+    <string name="label_hello">Hallo</string>
 </resources>

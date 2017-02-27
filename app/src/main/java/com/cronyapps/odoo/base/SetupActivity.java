@@ -40,7 +40,7 @@ public class SetupActivity extends CronyActivity {
         txvSetupStatus = (TextView) findViewById(R.id.setupStatus);
         user = OdooUser.get(this);
         TextView txvUserName = (TextView) findViewById(R.id.welcomeUser);
-        txvUserName.setText(String.format(Locale.getDefault(), "Hello, %s", user.name));
+        txvUserName.setText(String.format(Locale.getDefault(), "%s, %s", getString(R.string.label_hello), user.name));
         requestSetup();
     }
 
