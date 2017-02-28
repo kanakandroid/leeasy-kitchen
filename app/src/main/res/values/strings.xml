@@ -86,6 +86,7 @@
     <string name="label_delivery_method">Delivery Method:</string>
     <string name="label_note">Note</string>
     <string name="label_hello">Hello</string>
+    <string name="title_new_order_notification">New order</string>
 
     <string-array name="nav_spinner_items_manager">
         <item>All Orders</item>

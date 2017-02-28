@@ -207,7 +207,7 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
                     if (!row.state.getValue().equals("draft")) {
                         continue;
                     }
-                    title = "New order";
+                    title = getContext().getString(R.string.title_new_order_notification); //"New order";
                     message = product.name.getValue() + " (" +
                             row.reference.getValue() + ")";
                     break;
