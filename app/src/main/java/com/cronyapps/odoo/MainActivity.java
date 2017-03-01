@@ -535,7 +535,7 @@ public class MainActivity extends CronyActivity implements
         }
 
         @Override
-        protected Void doInBackground(Integer... ids) {
+        protected Void doInBackground(final Integer... ids) {
             OdooApiClient client = orders.getAPIClient().setSynchronizedRequest(true);
             OArguments arguments = new OArguments();
             arguments.add(JSONUtils.arrayToJsonArray(ids));
@@ -546,7 +546,6 @@ public class MainActivity extends CronyActivity implements
 
                 }
             });
-            orders.syncOrders(null);
             return null;
         }
 

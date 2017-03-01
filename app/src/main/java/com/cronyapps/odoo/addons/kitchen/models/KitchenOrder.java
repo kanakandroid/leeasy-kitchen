@@ -76,6 +76,7 @@ public class KitchenOrder extends BaseDataModel<KitchenOrder> {
         super(context, user);
     }
 
+
     @Override
     public String authority() {
         return super.authority() + ".kitchen.orders";
